@@ -18,19 +18,31 @@ export interface DocumentRecord {
   hasDeadlines: boolean
 }
 
+// Check if we're in a serverless environment (like Vercel)
+const isServerless = process.env.VERCEL || process.env.NETLIFY || process.env.AWS_LAMBDA_FUNCTION_NAME
+
 const DOCUMENTS_FILE = path.join(process.cwd(), 'data', 'documents.json')
 
-// Ensure data directory exists
+// In-memory storage for serverless environments
+let memoryDocuments: DocumentRecord[] = []
+
+// Ensure data directory exists (only for local development)
 function ensureDataDirectory() {
+  if (isServerless) return
+  
   const dataDir = path.join(process.cwd(), 'data')
   if (!fs.existsSync(dataDir)) {
     fs.mkdirSync(dataDir, { recursive: true })
   }
 }
 
-// Read documents from file
+// Read documents from file or memory
 function readDocuments(): DocumentRecord[] {
   try {
+    if (isServerless) {
+      return memoryDocuments
+    }
+    
     ensureDataDirectory()
     if (!fs.existsSync(DOCUMENTS_FILE)) {
       return []
@@ -38,14 +50,19 @@ function readDocuments(): DocumentRecord[] {
     const data = fs.readFileSync(DOCUMENTS_FILE, 'utf8')
     return JSON.parse(data)
   } catch (error) {
-    console.error('Error reading documents file:', error)
+    console.error('Error reading documents:', error)
     return []
   }
 }
 
-// Write documents to file
+// Write documents to file or memory
 function writeDocuments(documents: DocumentRecord[]) {
   try {
+    if (isServerless) {
+      memoryDocuments = [...documents]
+      return
+    }
+    
     ensureDataDirectory()
     fs.writeFileSync(DOCUMENTS_FILE, JSON.stringify(documents, null, 2))
   } catch (error) {
