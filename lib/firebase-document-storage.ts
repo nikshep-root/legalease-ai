@@ -122,7 +122,6 @@ export async function getUserDocuments(userId: string): Promise<DocumentRecord[]
   try {
     const querySnapshot = await db.collection(DOCUMENTS_COLLECTION)
       .where('userId', '==', userId)
-      .orderBy('uploadDate', 'desc')
       .get()
     
     const documents: DocumentRecord[] = []
@@ -130,6 +129,9 @@ export async function getUserDocuments(userId: string): Promise<DocumentRecord[]
     querySnapshot.forEach((doc) => {
       documents.push(convertDocumentData(doc.data(), doc.id))
     })
+    
+    // Sort by upload date in JavaScript instead of Firestore
+    documents.sort((a, b) => new Date(b.uploadDate).getTime() - new Date(a.uploadDate).getTime())
     
     return documents
   } catch (error) {
