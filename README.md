@@ -152,7 +152,7 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 For support, feature requests, or questions:
 - Create an issue in this repository
-- Contact: [support@legalease-ai.com]
+- Contact: nikshepd01@gmail.com
 
 ## 🔮 Roadmap
 
