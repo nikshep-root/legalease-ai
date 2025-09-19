@@ -8,7 +8,7 @@ import {
   searchDocuments,
   bulkDeleteDocuments,
   getDocumentStats
-} from "@/lib/document-storage"
+} from "@/lib/firebase-document-storage"
 
 // GET /api/documents - Get user's documents or search
 export async function GET(request: NextRequest) {

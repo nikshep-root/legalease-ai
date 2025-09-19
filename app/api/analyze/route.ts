@@ -1,6 +1,6 @@
 import { type NextRequest, NextResponse } from "next/server"
 import { geminiAnalyzer } from "@/lib/gemini-analyzer"
-import { saveDocumentRecord } from "@/lib/document-storage"
+import { saveDocumentRecord } from "@/lib/firebase-document-storage"
 import { getServerSession } from "next-auth"
 import { authOptions } from "@/app/api/auth/[...nextauth]/route"
 
