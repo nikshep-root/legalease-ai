@@ -50,7 +50,7 @@ function readDocuments(): DocumentRecord[] {
     const data = fs.readFileSync(DOCUMENTS_FILE, 'utf8')
     return JSON.parse(data)
   } catch (error) {
-    console.error('Error reading documents:', error)
+    // Error reading documents
     return []
   }
 }
@@ -66,7 +66,7 @@ function writeDocuments(documents: DocumentRecord[]) {
     ensureDataDirectory()
     fs.writeFileSync(DOCUMENTS_FILE, JSON.stringify(documents, null, 2))
   } catch (error) {
-    console.error('Error writing documents file:', error)
+    // Error writing documents file
   }
 }
 
@@ -176,11 +176,11 @@ export async function saveDocumentRecord(
     documents.push(documentRecord)
     writeDocuments(documents)
     
-    console.log(`📄 Document saved: ${originalName} (ID: ${documentRecord.id})`)
+
     return documentRecord.id
     
   } catch (error) {
-    console.error('Error saving document record:', error)
+    // Error saving document record
     throw new Error('Failed to save document record')
   }
 }
@@ -191,7 +191,7 @@ export async function getUserDocuments(userId: string): Promise<DocumentRecord[]
     return documents.filter(doc => doc.userId === userId)
       .sort((a, b) => new Date(b.uploadDate).getTime() - new Date(a.uploadDate).getTime())
   } catch (error) {
-    console.error('Error getting user documents:', error)
+    // Error getting user documents
     return []
   }
 }
@@ -201,7 +201,7 @@ export async function getRecentDocuments(userId: string, limit: number = 5): Pro
     const documents = await getUserDocuments(userId)
     return documents.slice(0, limit)
   } catch (error) {
-    console.error('Error getting recent documents:', error)
+    // Error getting recent documents
     return []
   }
 }
@@ -219,7 +219,7 @@ export async function getDocumentById(documentId: string, userId: string): Promi
     
     return document || null
   } catch (error) {
-    console.error('Error getting document by ID:', error)
+    // Error getting document by ID
     return null
   }
 }
@@ -231,13 +231,13 @@ export async function deleteDocument(documentId: string, userId: string): Promis
     
     if (filteredDocuments.length < documents.length) {
       writeDocuments(filteredDocuments)
-      console.log(`🗑️ Document deleted: ${documentId}`)
+
       return true
     }
     
     return false
   } catch (error) {
-    console.error('Error deleting document:', error)
+    // Error deleting document
     return false
   }
 }
@@ -254,7 +254,7 @@ export async function searchDocuments(userId: string, query: string): Promise<Do
       doc.analysis?.summary?.toLowerCase().includes(lowercaseQuery)
     )
   } catch (error) {
-    console.error('Error searching documents:', error)
+    // Error searching documents
     return []
   }
 }
@@ -293,7 +293,7 @@ export async function getDocumentStats(userId: string): Promise<{
     
     return stats
   } catch (error) {
-    console.error('Error getting document stats:', error)
+    // Error getting document stats
     return {
       totalDocuments: 0,
       totalSize: 0,
@@ -314,10 +314,10 @@ export async function bulkDeleteDocuments(documentIds: string[], userId: string)
     const deletedCount = documents.length - filteredDocuments.length
     writeDocuments(filteredDocuments)
     
-    console.log(`🗑️ Bulk deleted ${deletedCount} documents`)
+
     return deletedCount
   } catch (error) {
-    console.error('Error bulk deleting documents:', error)
+    // Error bulk deleting documents
     return 0
   }
 }

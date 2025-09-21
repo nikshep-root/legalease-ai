@@ -130,7 +130,7 @@ export default function DocumentsPage() {
       const data = await response.json()
       setStats(data.stats)
     } catch (err) {
-      console.error('Failed to load stats:', err)
+      // Failed to load stats
     }
   }
 

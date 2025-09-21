@@ -8,7 +8,7 @@ let pdfjsLib: any = null
 async function loadPdfjsLib() {
   if (!pdfjsLib && typeof window !== "undefined") {
     try {
-      console.log("[v0] Loading PDF.js library...")
+
       const pdfjs = await import("pdfjs-dist")
       
       // Check if the import was successful
@@ -24,9 +24,9 @@ async function loadPdfjsLib() {
         pdfjsLib.GlobalWorkerOptions.workerSrc = `https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js`
       }
       
-      console.log("[v0] PDF.js library loaded successfully")
+
     } catch (error) {
-      console.error("Failed to load PDF.js:", error)
+      // Failed to load PDF.js
       throw new Error("Failed to load PDF processing library. Please refresh the page and try again.")
     }
   }
@@ -71,7 +71,7 @@ export async function extractTextFromFile(file: File): Promise<string> {
       const reader = new FileReader()
       reader.onload = async (event) => {
         try {
-          console.log("[v0] Starting PDF text extraction...")
+
           const arrayBuffer = event.target?.result as ArrayBuffer
           if (!arrayBuffer) {
             reject(new Error("Failed to read PDF file - no data received"))
@@ -84,7 +84,7 @@ export async function extractTextFromFile(file: File): Promise<string> {
             throw new Error("PDF processing library failed to load properly")
           }
 
-          console.log("[v0] Loading PDF document...")
+
           
           // Configure PDF.js loading options
           const loadingTask = pdfjsLib.getDocument({
@@ -96,7 +96,7 @@ export async function extractTextFromFile(file: File): Promise<string> {
           const pdf = await loadingTask.promise
           let fullText = ""
 
-          console.log("[v0] PDF loaded, extracting text from", pdf.numPages, "pages...")
+
 
           // Extract text from all pages
           for (let i = 1; i <= pdf.numPages; i++) {

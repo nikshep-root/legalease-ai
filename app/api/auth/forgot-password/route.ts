@@ -25,16 +25,8 @@ export async function POST(request: NextRequest) {
       const resetToken = crypto.randomBytes(32).toString('hex')
       const tokenExpiry = new Date(Date.now() + 3600000) // 1 hour from now
       
-      // TODO: In production, you would:
-      // 1. Store the reset token and expiry in the database
-      // 2. Send an email with the reset link
-      
-      console.log(`Password reset requested for: ${email}`)
-      console.log(`Reset token (for development): ${resetToken}`)
-      console.log(`Token expires at: ${tokenExpiry}`)
-      
-      // For now, just log the reset token (in production, send via email)
-      console.log(`Password reset link: http://localhost:3000/reset-password?token=${resetToken}&email=${encodeURIComponent(email)}`)
+      // In production, store reset token in database and send email
+      // For demo purposes, reset token is generated but not persisted
     }
 
     // Always return success response
@@ -44,7 +36,6 @@ export async function POST(request: NextRequest) {
     })
 
   } catch (error) {
-    console.error("Forgot password error:", error)
     return NextResponse.json(
       { error: "An error occurred while processing your request" },
       { status: 500 }

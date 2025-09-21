@@ -24,14 +24,8 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "Document content is too short for meaningful analysis" }, { status: 400 })
     }
 
-    console.log("[Gemini] Starting document analysis...")
-    console.log("[Gemini] Document length:", text.length, "characters")
-    console.log("[Gemini] File name:", fileName)
-
     // Use Gemini for comprehensive document analysis
     const analysis = await geminiAnalyzer.analyzeDocument(text, fileName || "Unknown Document")
-    
-    console.log("[Gemini] Analysis completed successfully")
 
     // Save document record if user is authenticated
     let documentId: string | undefined
@@ -49,9 +43,8 @@ export async function POST(request: NextRequest) {
           estimatedFileSize
         )
         
-        console.log(`📄 Document record saved with ID: ${documentId}`)
       } catch (saveError) {
-        console.error("Error saving document record:", saveError)
+        // Document saving failed, but continue with response
         // Don't fail the request if document saving fails
       }
     }
@@ -65,7 +58,6 @@ export async function POST(request: NextRequest) {
     })
 
   } catch (error) {
-    console.error("[Gemini] Analysis error:", error)
     
     // Provide fallback analysis if Gemini fails
     const fallbackAnalysis = {

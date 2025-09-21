@@ -12,9 +12,7 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    console.log("[Compare API] Starting document comparison...")
-    console.log("[Compare API] Document 1:", document1.name)
-    console.log("[Compare API] Document 2:", document2.name)
+
 
     // Create a detailed comparison prompt for Gemini
     const comparisonPrompt = `
@@ -95,7 +93,7 @@ Focus on practical legal implications and provide actionable insights that would
       
       parsedComparison = JSON.parse(cleanedResponse)
     } catch (parseError) {
-      console.error("[Compare API] JSON parsing failed:", parseError)
+      // JSON parsing failed, use fallback
       
       // Fallback comparison structure
       parsedComparison = {
@@ -140,7 +138,7 @@ Focus on practical legal implications and provide actionable insights that would
       }
     }
 
-    console.log("[Compare API] Comparison completed successfully")
+    
 
     return NextResponse.json({
       success: true,
@@ -159,7 +157,7 @@ Focus on practical legal implications and provide actionable insights that would
     })
 
   } catch (error) {
-    console.error("[Compare API] Comparison failed:", error)
+    
     
     return NextResponse.json(
       { 

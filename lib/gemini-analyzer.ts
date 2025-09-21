@@ -46,7 +46,7 @@ export class GeminiDocumentAnalyzer {
 
   async analyzeDocument(text: string, fileName: string): Promise<GeminiAnalysisResult> {
     try {
-      console.log("[Gemini] Starting document analysis for:", fileName);
+
 
       const prompt = `
 You are a highly skilled legal AI assistant specializing in document analysis. Please analyze the following legal document and provide a comprehensive analysis in JSON format.
@@ -102,12 +102,12 @@ Guidelines:
 Please provide only the JSON response without any additional text or formatting.
 `;
 
-      console.log("[Gemini] Sending request to Gemini API...");
+
       const result = await this.model.generateContent(prompt);
       const response = await result.response;
       const analysisText = response.text();
 
-      console.log("[Gemini] Received response, parsing JSON...");
+
       
       // Clean up the response to ensure it's valid JSON
       let cleanedResponse = analysisText.trim();
@@ -121,18 +121,17 @@ Please provide only the JSON response without any additional text or formatting.
 
       try {
         const analysis: GeminiAnalysisResult = JSON.parse(cleanedResponse);
-        console.log("[Gemini] Analysis completed successfully");
+
         return analysis;
       } catch (parseError) {
-        console.error("[Gemini] JSON parsing failed:", parseError);
-        console.error("[Gemini] Raw response:", analysisText);
+        // JSON parsing failed, using fallback format
         
         // Fallback: create a structured response from the text
         return this.createFallbackAnalysis(analysisText, fileName);
       }
 
     } catch (error) {
-      console.error("[Gemini] API call failed:", error);
+      // Gemini API call failed
       
       // If Gemini fails, provide a basic analysis
       return this.createBasicAnalysis(text, fileName);
@@ -179,14 +178,14 @@ Please provide only the JSON response without any additional text or formatting.
 
   async generateChatResponse(prompt: string): Promise<string> {
     try {
-      console.log("[Gemini Chat] Generating response...");
+
       const result = await this.model.generateContent(prompt);
       const response = await result.response;
       const text = response.text().trim();
-      console.log("[Gemini Chat] Response generated successfully");
+
       return text;
     } catch (error) {
-      console.error("[Gemini Chat] Failed to generate response:", error);
+      // Failed to generate chat response
       throw error;
     }
   }

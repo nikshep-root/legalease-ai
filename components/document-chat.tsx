@@ -72,7 +72,7 @@ export function DocumentChat({ analysis, documentText }: DocumentChatProps) {
 
       setMessages((prev) => [...prev, assistantMessage])
     } catch (error) {
-      console.error("[v0] Chat error:", error)
+      // Chat error occurred
       const errorMessage: ChatMessage = {
         id: (Date.now() + 1).toString(),
         role: "assistant",

@@ -27,7 +27,7 @@ export default function ResultsPage({ params }: { params: { id: string } }) {
           url: window.location.href,
         })
       } catch (error) {
-        console.log("Share cancelled or failed")
+
       }
     } else {
       // Fallback: copy link to clipboard
@@ -133,18 +133,17 @@ export default function ResultsPage({ params }: { params: { id: string } }) {
 
   useEffect(() => {
     try {
-      console.log("[v0] Looking for analysis with ID:", params.id)
+
       const storedAnalysis = localStorage.getItem(params.id)
       if (storedAnalysis) {
         const parsedAnalysis = JSON.parse(storedAnalysis)
-        console.log("[v0] Analysis found and loaded successfully")
+
         setAnalysis(parsedAnalysis)
       } else {
-        console.error("[v0] No analysis found for ID:", params.id)
-        console.log("[v0] Available localStorage keys:", Object.keys(localStorage))
+        // No analysis found for the given ID
       }
     } catch (error) {
-      console.error("[v0] Error loading analysis:", error)
+      // Error loading analysis
     } finally {
       setIsLoading(false)
     }

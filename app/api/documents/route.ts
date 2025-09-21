@@ -53,7 +53,7 @@ export async function GET(request: NextRequest) {
     })
 
   } catch (error) {
-    console.error("Error in documents GET:", error)
+    // Error in documents GET
     return NextResponse.json(
       { error: "Internal server error" },
       { status: 500 }
@@ -101,7 +101,7 @@ export async function DELETE(request: NextRequest) {
     }
 
   } catch (error) {
-    console.error("Error in documents DELETE:", error)
+    // Error in documents DELETE
     return NextResponse.json(
       { error: "Internal server error" },
       { status: 500 }

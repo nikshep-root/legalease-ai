@@ -1,6 +1,4 @@
-import { createWorker } from 'tesseract.js';
-
-// Cache worker to avoid creating multiple instances
+import { createWorker } from 'tesseract.js'    // Canvas OCR completed/ Cache worker to avoid creating multiple instances
 let ocrWorker: any = null;
 
 async function getOcrWorker() {
@@ -10,7 +8,7 @@ async function getOcrWorker() {
     await ocrWorker.load();
     await ocrWorker.loadLanguage('eng');
     await ocrWorker.initialize('eng', {
-      logger: (m: any) => console.log('[OCR]', m),
+      logger: (m: any) => {}, // Silent logger
     });
   }
   return ocrWorker;
@@ -18,13 +16,13 @@ async function getOcrWorker() {
 
 export async function extractTextWithOcr(imageData: ImageData): Promise<string> {
   try {
-    console.log('[OCR] Starting OCR processing...');
+
     const worker = await getOcrWorker();
     const result = await worker.recognize(imageData);
-    console.log('[OCR] OCR completed, extracted:', result.data.text.length, 'characters');
+
     return result.data.text;
   } catch (error) {
-    console.error('[OCR] Failed to extract text:', error);
+    // OCR failed to extract text
     throw new Error('OCR text extraction failed');
   }
 }
@@ -32,13 +30,12 @@ export async function extractTextWithOcr(imageData: ImageData): Promise<string> 
 // Enhanced OCR function for canvas elements
 export async function extractTextFromCanvas(canvas: HTMLCanvasElement): Promise<string> {
   try {
-    console.log('[OCR] Starting canvas OCR processing...');
-    console.log('[OCR] Canvas dimensions:', canvas.width, 'x', canvas.height);
+
     
     // Use the existing cached worker for better performance
     const worker = await getOcrWorker();
     
-    console.log('[OCR] Recognizing text from canvas...');
+
     const result = await worker.recognize(canvas);
     
     const extractedText = result.data.text.trim();
@@ -51,7 +48,7 @@ export async function extractTextFromCanvas(canvas: HTMLCanvasElement): Promise<
     
     return extractedText;
   } catch (error) {
-    console.error('[OCR] Canvas OCR failed:', error);
+    // Canvas OCR failed
     // Don't throw error, return empty string to continue processing
     return '';
   }

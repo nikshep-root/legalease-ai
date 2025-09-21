@@ -79,7 +79,7 @@ function DashboardContent() {
         setStats(statsData.stats)
       }
     } catch (error) {
-      console.error('Failed to load dashboard data:', error)
+      // Failed to load dashboard data
     } finally {
       setLoading(false)
     }
@@ -104,7 +104,7 @@ function DashboardContent() {
         await loadDashboardData()
       }
     } catch (error) {
-      console.error('Failed to delete document:', error)
+      // Failed to delete document
     }
   }
 

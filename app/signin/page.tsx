@@ -92,7 +92,7 @@ export default function SignInPage() {
       }
       
     } catch (error) {
-      console.error('Authentication error:', error)
+      // Authentication error occurred
       setErrors(["Authentication failed. Please try again."])
     } finally {
       setIsLoading(false)

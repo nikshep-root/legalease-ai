@@ -60,9 +60,7 @@ export default function ComparePage() {
 
     try {
       // First extract text from the PDF file
-      console.log(`[Compare] Extracting text from ${file.name}...`)
       const text = await extractTextFromFile(file)
-      console.log(`[Compare] Extracted ${text.length} characters from ${file.name}`)
 
       if (!text || text.trim().length < 10) {
         throw new Error("Could not extract sufficient text from the document. Please ensure it's a valid PDF with readable content.")
@@ -93,7 +91,7 @@ export default function ComparePage() {
       }))
 
     } catch (error) {
-      console.error("Error analyzing document:", error)
+      // Error analyzing document
       setDoc(prev => ({
         ...prev,
         error: error instanceof Error ? error.message : "Analysis failed",
@@ -130,7 +128,7 @@ export default function ComparePage() {
       setComparisonResult(result.comparison)
 
     } catch (error) {
-      console.error("Error comparing documents:", error)
+      // Error comparing documents
       // Handle error
     } finally {
       setIsComparing(false)

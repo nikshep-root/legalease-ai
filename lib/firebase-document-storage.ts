@@ -108,11 +108,9 @@ export async function saveDocumentRecord(
     }
 
     const docRef = await db.collection(DOCUMENTS_COLLECTION).add(documentData)
-    console.log(`📄 Document saved to Firestore with ID: ${docRef.id}`)
     
     return docRef.id
   } catch (error) {
-    console.error('Error saving document to Firestore:', error)
     throw error
   }
 }
@@ -135,7 +133,6 @@ export async function getUserDocuments(userId: string): Promise<DocumentRecord[]
     
     return documents
   } catch (error) {
-    console.error('Error getting user documents from Firestore:', error)
     return []
   }
 }
@@ -160,7 +157,6 @@ export async function getDocumentById(documentId: string, userId: string): Promi
     
     return null
   } catch (error) {
-    console.error('Error getting document by ID from Firestore:', error)
     return null
   }
 }
@@ -181,7 +177,6 @@ export async function deleteDocument(documentId: string, userId: string): Promis
     
     return false
   } catch (error) {
-    console.error('Error deleting document from Firestore:', error)
     return false
   }
 }
@@ -204,7 +199,6 @@ export async function searchDocuments(userId: string, searchQuery: string): Prom
     
     return filteredDocuments
   } catch (error) {
-    console.error('Error searching documents in Firestore:', error)
     return []
   }
 }
@@ -229,7 +223,6 @@ export async function bulkDeleteDocuments(documentIds: string[], userId: string)
     await batch.commit()
     return true
   } catch (error) {
-    console.error('Error bulk deleting documents from Firestore:', error)
     return false
   }
 }
@@ -266,7 +259,6 @@ export async function getDocumentStats(userId: string): Promise<DocumentStats> {
     
     return stats
   } catch (error) {
-    console.error('Error getting document stats from Firestore:', error)
     return {
       totalDocuments: 0,
       totalSize: 0,

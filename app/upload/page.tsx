@@ -29,7 +29,7 @@ export default function UploadPage() {
     const fileId = fileData.id
 
     try {
-      console.log("[v0] Starting analysis for file:", fileData.file.name)
+
 
       setFiles((prev) => prev.map((file) => (file.id === fileId ? { ...file, progress: 10 } : file)))
 
@@ -39,7 +39,7 @@ export default function UploadPage() {
       )
 
       const text = (await Promise.race([extractionPromise, timeoutPromise])) as string
-      console.log("[v0] Text extracted, length:", text.length)
+
 
       setFiles((prev) => prev.map((file) => (file.id === fileId ? { ...file, progress: 30 } : file)))
 
@@ -55,7 +55,7 @@ export default function UploadPage() {
       )
 
       const analysis = await Promise.race([analysisPromise, analysisTimeoutPromise])
-      console.log("[v0] Analysis completed successfully")
+
 
       setFiles((prev) => prev.map((file) => (file.id === fileId ? { ...file, progress: 90 } : file)))
 
@@ -64,18 +64,18 @@ export default function UploadPage() {
 
       // Store in localStorage for now (in production, use proper backend)
       localStorage.setItem(analysisId, JSON.stringify(analysis))
-      console.log("[v0] Analysis stored with ID:", analysisId)
+
 
       setFiles((prev) =>
         prev.map((file) => (file.id === fileId ? { ...file, status: "completed", analysisId, progress: 100 } : file)),
       )
 
       setTimeout(() => {
-        console.log("[v0] Auto-redirecting to results page")
+
         router.push(`/results/${analysisId}`)
       }, 1500)
     } catch (error) {
-      console.error("[v0] Analysis error:", error)
+      // Analysis error occurred
       const errorMessage = error instanceof Error ? error.message : "Failed to analyze document"
       setFiles((prev) =>
         prev.map((file) => (file.id === fileId ? { ...file, status: "error", error: errorMessage } : file)),
