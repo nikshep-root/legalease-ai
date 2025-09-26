@@ -34,7 +34,7 @@ export class GeminiDocumentAnalyzer {
 
   constructor() {
     this.model = genAI.getGenerativeModel({ 
-      model: "gemini-pro",
+      model: "gemini-1.5-flash",
       generationConfig: {
         temperature: 0.3, // Lower temperature for more consistent legal analysis
         topK: 40,
