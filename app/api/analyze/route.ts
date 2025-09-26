@@ -59,23 +59,15 @@ export async function POST(request: NextRequest) {
 
   } catch (error) {
     
-    // Provide fallback analysis if Gemini fails
+    // Enhanced fallback analysis with intelligent parsing
     const fallbackAnalysis = {
-      summary: `Document analysis completed for ${fileName || 'uploaded document'}. The document contains ${text.length || 0} characters of content. A detailed AI analysis was not available at this time, but the document has been successfully processed for basic review.`,
-      documentType: "Legal Document",
-      keyPoints: [
-        `Document successfully processed (${text.length || 0} characters)`,
-        "Content extracted and ready for review",
-        "Manual review recommended for detailed analysis"
-      ],
-      risks: [{
-        level: "Medium" as const,
-        description: "Document requires manual review",
-        recommendation: "Please review the document manually or try the analysis again"
-      }],
-      obligations: [],
-      importantClauses: [],
-      deadlines: []
+      summary: generateFallbackSummary(text),
+      documentType: detectDocumentType(fileName || "", text),
+      keyPoints: extractKeyPoints(text),
+      risks: identifyRisks(text),
+      obligations: extractObligations(text),
+      importantClauses: findImportantClauses(text),
+      deadlines: extractDeadlines(text)
     }
 
     return NextResponse.json({
@@ -90,7 +82,7 @@ export async function POST(request: NextRequest) {
 
 function generateFallbackSummary(text: string): string {
   const sentences = text.split(/[.!?]+/).filter((s) => s.trim().length > 20)
-  const importantSentences = []
+  const importantSentences: string[] = []
 
   // Look for sentences with key legal terms
   const keyTerms = [
@@ -142,7 +134,7 @@ function detectDocumentType(fileName: string, text: string): string {
 }
 
 function extractKeyPoints(text: string): string[] {
-  const keyPoints = []
+  const keyPoints: string[] = []
   const sentences = text.split(/[.!?]+/).filter((s) => s.trim().length > 20)
 
   // Look for important keywords and phrases

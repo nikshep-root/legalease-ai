@@ -13,38 +13,48 @@ export async function GET() {
 
     console.log('Testing API key:', apiKey.substring(0, 10) + '...')
 
-    // Test the Gemini API with a simple request
-    const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        contents: [{
-          parts: [{
-            text: "Hello, are you working? Please respond with 'Yes, Gemini API is working correctly!'"
-          }]
-        }]
-      })
-    })
+    // Try using the GoogleGenerativeAI SDK directly
+    const { GoogleGenerativeAI } = require('@google/generative-ai');
+    const genAI = new GoogleGenerativeAI(apiKey);
+    
+    // Try basic models that should work with your API key
+    const modelsToTry = [
+      'gemini-pro'
+    ]
 
-    const data = await response.json()
+    let lastError = null
 
-    if (!response.ok) {
-      return NextResponse.json({ 
-        success: false, 
-        error: `Gemini API Error: ${data.error?.message || 'Unknown error'}`,
-        status: response.status,
-        details: data
-      })
+    // Test the specific models that are confirmed available
+    const availableModels = ['gemini-1.5-flash-latest', 'gemini-1.5-pro-latest', 'gemini-2.0-flash']
+    
+    for (const modelName of availableModels) {
+      try {
+        console.log(`Testing model: ${modelName}`)
+        
+        const model = genAI.getGenerativeModel({ model: modelName });
+        const result = await model.generateContent("Hello, are you working? Please respond with 'Yes, Gemini API is working correctly!'");
+        const response = await result.response;
+        const text = response.text();
+
+        return NextResponse.json({ 
+          success: true, 
+          message: `Gemini API is working with model: ${modelName}!`,
+          model: modelName,
+          response: text,
+          apiKeyLength: apiKey.length,
+          apiKeyPrefix: apiKey.substring(0, 10) + '...'
+        })
+        
+      } catch (modelError: any) {
+        console.log(`Model ${modelName} error:`, modelError.message)
+        lastError = modelError
+      }
     }
 
     return NextResponse.json({ 
-      success: true, 
-      message: 'Gemini API is working!',
-      response: data.candidates?.[0]?.content?.parts?.[0]?.text || 'No response text',
-      apiKeyLength: apiKey.length,
-      apiKeyPrefix: apiKey.substring(0, 10) + '...'
+      success: false, 
+      error: `No models available or all models failed`,
+      details: lastError
     })
 
   } catch (error) {
