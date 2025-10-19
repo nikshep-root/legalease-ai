@@ -16,6 +16,9 @@ import { DocumentChat } from "@/components/document-chat"
 import { ExportDialog } from "@/components/export-dialog"
 import { DocumentHealthScore } from "@/components/document-health-score"
 import { SmartTimeline } from "@/components/smart-timeline"
+import { ClauseComparison } from "@/components/clause-comparison"
+import { NegotiationAssistant } from "@/components/negotiation-assistant"
+import { InteractiveAnnotations } from "@/components/interactive-annotations"
 
 export default function ResultsPage({ params }: { params: { id: string } }) {
   const [analysis, setAnalysis] = useState<DocumentAnalysis | null>(null)
@@ -380,6 +383,21 @@ export default function ResultsPage({ params }: { params: { id: string } }) {
           {/* Smart Timeline */}
           <div className="mt-6">
             <SmartTimeline analysis={analysis} />
+          </div>
+
+          {/* Clause Comparison */}
+          <div className="mt-6">
+            <ClauseComparison analysis={analysis} />
+          </div>
+
+          {/* Negotiation Assistant */}
+          <div className="mt-6">
+            <NegotiationAssistant analysis={analysis} />
+          </div>
+
+          {/* Interactive Annotations */}
+          <div className="mt-6">
+            <InteractiveAnnotations analysis={analysis} documentId={params.id} />
           </div>
         </div>
 
