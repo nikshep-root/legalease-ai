@@ -32,6 +32,22 @@ export default function MobileCameraScanner({ onComplete, onCancel }: MobileCame
   const [facingMode, setFacingMode] = useState<'user' | 'environment'>('environment');
   const [isVideoReady, setIsVideoReady] = useState(false);
 
+  // Detect if mobile device
+  const isMobileDevice = () => {
+    return /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+  };
+
+  // Handle camera button click
+  const handleOpenCamera = () => {
+    if (isMobileDevice()) {
+      // On mobile, use file input with capture attribute (opens native camera)
+      fileInputRef.current?.click();
+    } else {
+      // On desktop, use video stream
+      startCamera();
+    }
+  };
+
   // Start camera
   const startCamera = async () => {
     try {
@@ -374,9 +390,9 @@ export default function MobileCameraScanner({ onComplete, onCancel }: MobileCame
           )}
 
           {/* Camera button */}
-          {capturedImages.length === 0 && (
+          {!isCameraActive && capturedImages.length === 0 && (
             <Button
-              onClick={() => fileInputRef.current?.click()}
+              onClick={startCamera}
               className="w-full"
               size="lg"
             >
@@ -385,7 +401,7 @@ export default function MobileCameraScanner({ onComplete, onCancel }: MobileCame
             </Button>
           )}
 
-          {/* Hidden file input - triggers native camera */}
+          {/* Hidden file input */}
           <input
             ref={fileInputRef}
             type="file"
@@ -396,6 +412,75 @@ export default function MobileCameraScanner({ onComplete, onCancel }: MobileCame
             className="hidden"
           />
 
+          {/* Camera view */}
+          {isCameraActive && (
+            <div className="space-y-3">
+              <div className="relative bg-gray-900 rounded-lg overflow-hidden" style={{ aspectRatio: '4/3', minHeight: '300px' }}>
+                <video
+                  ref={videoRef}
+                  autoPlay
+                  playsInline
+                  muted
+                  className="absolute inset-0 w-full h-full object-cover"
+                  style={{ backgroundColor: '#000' }}
+                />
+                
+                {/* Loading indicator while video initializes */}
+                {!isVideoReady && (
+                  <div className="absolute inset-0 flex items-center justify-center bg-black/70 z-10">
+                    <div className="text-white text-center space-y-2">
+                      <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-white mx-auto"></div>
+                      <p className="text-sm">Initializing camera...</p>
+                      <p className="text-xs text-gray-300">Please allow camera access if prompted</p>
+                    </div>
+                  </div>
+                )}
+                
+                {/* Camera overlay guide */}
+                {isVideoReady && (
+                  <div className="absolute inset-0 pointer-events-none z-20">
+                    <div className="absolute inset-8 border-2 border-white/50 rounded-lg" />
+                    <div className="absolute top-4 left-1/2 transform -translate-x-1/2 bg-black/50 text-white text-xs px-3 py-1 rounded-full">
+                      Position document within frame
+                    </div>
+                  </div>
+                )}
+              </div>
+
+              {/* Camera controls */}
+              <div className="flex items-center justify-center gap-3">
+                <Button
+                  onClick={stopCamera}
+                  variant="outline"
+                  size="icon"
+                >
+                  <X className="h-5 w-5" />
+                </Button>
+
+                <Button
+                  onClick={capturePhoto}
+                  size="lg"
+                  className="h-16 w-16 rounded-full"
+                  disabled={!isVideoReady}
+                  title={isVideoReady ? 'Capture photo' : 'Camera loading...'}
+                >
+                  <Camera className="h-6 w-6" />
+                </Button>
+
+                <Button
+                  onClick={toggleCamera}
+                  variant="outline"
+                  size="icon"
+                >
+                  <RotateCw className="h-5 w-5" />
+                </Button>
+              </div>
+            </div>
+          )}
+
+          {/* Hidden canvas for image processing */}
+          <canvas ref={canvasRef} className="hidden" />
+
           {/* Captured images preview */}
           {capturedImages.length > 0 && (
             <div className="space-y-3">
@@ -403,14 +488,16 @@ export default function MobileCameraScanner({ onComplete, onCancel }: MobileCame
                 <h3 className="font-semibold">
                   Captured Pages ({capturedImages.length})
                 </h3>
-                <Button
-                  onClick={() => fileInputRef.current?.click()}
-                  variant="outline"
-                  size="sm"
-                >
-                  <Plus className="h-4 w-4 mr-1" />
-                  Add More
-                </Button>
+                {!isCameraActive && (
+                  <Button
+                    onClick={startCamera}
+                    variant="outline"
+                    size="sm"
+                  >
+                    <Plus className="h-4 w-4 mr-1" />
+                    Add More
+                  </Button>
+                )}
               </div>
 
               <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
