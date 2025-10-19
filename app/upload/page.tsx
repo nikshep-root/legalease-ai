@@ -6,10 +6,12 @@ import { useState, useCallback } from "react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Progress } from "@/components/ui/progress"
-import { FileText, Upload, X, CheckCircle, AlertCircle } from "lucide-react"
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import { FileText, Upload, X, CheckCircle, AlertCircle, Camera } from "lucide-react"
 import Link from "next/link"
 import { useRouter } from "next/navigation"
 import { extractTextFromFile, analyzeDocument } from "@/lib/document-processor"
+import MobileCameraScanner from "@/components/mobile-camera-scanner"
 
 interface UploadedFile {
   file: File
@@ -224,41 +226,62 @@ export default function UploadPage() {
         <div className="text-center mb-8">
           <h1 className="text-3xl md:text-4xl font-bold mb-4">Upload Your Legal Document</h1>
           <p className="text-xl text-muted-foreground">
-            Upload a PDF or text file to get AI-powered analysis and insights
+            Upload a file or scan a document with your camera
           </p>
         </div>
 
-        {/* Upload Area */}
-        <Card className="mb-8">
-          <CardContent className="p-8">
-            <div
-              className={`border-2 border-dashed rounded-lg p-12 text-center transition-colors ${
-                isDragOver ? "border-primary bg-primary/5" : "border-border hover:border-primary/50 hover:bg-muted/30"
-              }`}
-              onDragOver={handleDragOver}
-              onDragLeave={handleDragLeave}
-              onDrop={handleDrop}
-            >
-              <Upload className="w-12 h-12 text-muted-foreground mx-auto mb-4" />
-              <h3 className="text-lg font-semibold mb-2">Drop your files here</h3>
-              <p className="text-muted-foreground mb-4">or click to browse and select files</p>
-              <input
-                type="file"
-                multiple
-                accept=".pdf,.txt"
-                onChange={handleFileInput}
-                className="hidden"
-                id="file-input"
-              />
-              <Button asChild>
-                <label htmlFor="file-input" className="cursor-pointer">
-                  Choose Files
-                </label>
-              </Button>
-              <p className="text-sm text-muted-foreground mt-4">Supports PDF and TXT files up to 10MB each</p>
-            </div>
-          </CardContent>
-        </Card>
+        {/* Tabs for Upload Method */}
+        <Tabs defaultValue="upload" className="mb-8">
+          <TabsList className="grid w-full grid-cols-2 mb-6">
+            <TabsTrigger value="upload" className="flex items-center gap-2">
+              <Upload className="w-4 h-4" />
+              File Upload
+            </TabsTrigger>
+            <TabsTrigger value="camera" className="flex items-center gap-2">
+              <Camera className="w-4 h-4" />
+              Camera Scanner
+            </TabsTrigger>
+          </TabsList>
+
+          {/* File Upload Tab */}
+          <TabsContent value="upload">
+            <Card>
+              <CardContent className="p-8">
+                <div
+                  className={`border-2 border-dashed rounded-lg p-12 text-center transition-colors ${
+                    isDragOver ? "border-primary bg-primary/5" : "border-border hover:border-primary/50 hover:bg-muted/30"
+                  }`}
+                  onDragOver={handleDragOver}
+                  onDragLeave={handleDragLeave}
+                  onDrop={handleDrop}
+                >
+                  <Upload className="w-12 h-12 text-muted-foreground mx-auto mb-4" />
+                  <h3 className="text-lg font-semibold mb-2">Drop your files here</h3>
+                  <p className="text-muted-foreground mb-4">or click to browse and select files</p>
+                  <input
+                    type="file"
+                    multiple
+                    accept=".pdf,.txt"
+                    onChange={handleFileInput}
+                    className="hidden"
+                    id="file-input"
+                  />
+                  <Button asChild>
+                    <label htmlFor="file-input" className="cursor-pointer">
+                      Choose Files
+                    </label>
+                  </Button>
+                  <p className="text-sm text-muted-foreground mt-4">Supports PDF and TXT files up to 10MB each</p>
+                </div>
+              </CardContent>
+            </Card>
+          </TabsContent>
+
+          {/* Camera Scanner Tab */}
+          <TabsContent value="camera">
+            <MobileCameraScanner />
+          </TabsContent>
+        </Tabs>
 
         {/* File List */}
         {files.length > 0 && (
