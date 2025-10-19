@@ -67,13 +67,13 @@ export default function ResultsPage({ params }: { params: { id: string } }) {
     const addSectionHeader = (title: string, color: [number, number, number] = primaryColor) => {
       checkNewPage(40)
       pdf.setFillColor(...color)
-      pdf.rect(margin, yPosition, maxWidth, 12, 'F')
+      pdf.rect(margin, yPosition, maxWidth, 10, 'F')
       pdf.setTextColor(255, 255, 255)
       pdf.setFont('helvetica', 'bold')
-      pdf.setFontSize(14)
-      pdf.text(title, margin + 5, yPosition + 8)
+      pdf.setFontSize(13)
+      pdf.text(title, margin + 5, yPosition + 7)
       pdf.setTextColor(0, 0, 0)
-      yPosition += 18
+      yPosition += 16
     }
 
     // Helper function to add text with word wrapping
@@ -119,14 +119,14 @@ export default function ResultsPage({ params }: { params: { id: string } }) {
 
     // Executive Summary
     if (analysis.summary) {
-      addSectionHeader('📋 Executive Summary', primaryColor)
+      addSectionHeader('EXECUTIVE SUMMARY', primaryColor)
       addText(analysis.summary, 11, false, 5)
       yPosition += 8
     }
 
     // Key Points
     if (analysis.keyPoints && analysis.keyPoints.length > 0) {
-      addSectionHeader('✨ Key Points', accentColor)
+      addSectionHeader('KEY POINTS', accentColor)
       analysis.keyPoints.forEach((point, index) => {
         const pointText = typeof point === 'string' ? point : (point as any).description || String(point)
         addText(`${index + 1}. ${pointText}`, 11, false, 5)
@@ -136,7 +136,7 @@ export default function ResultsPage({ params }: { params: { id: string } }) {
 
     // Legal Risks with color coding
     if (analysis.risks && analysis.risks.length > 0) {
-      addSectionHeader('⚠️ Legal Risks', dangerColor)
+      addSectionHeader('LEGAL RISKS', dangerColor)
       analysis.risks.forEach((risk, index) => {
         if (typeof risk === 'object' && risk !== null) {
           const riskObj = risk as any
@@ -154,7 +154,7 @@ export default function ResultsPage({ params }: { params: { id: string } }) {
           
           if (recommendation) {
             pdf.setTextColor(...secondaryColor)
-            addText(`→ Recommendation: ${recommendation}`, 10, false, 20)
+            addText(`Recommendation: ${recommendation}`, 10, false, 20)
             pdf.setTextColor(0, 0, 0)
           }
         } else {
@@ -166,7 +166,7 @@ export default function ResultsPage({ params }: { params: { id: string } }) {
 
     // Legal Obligations
     if (analysis.obligations && analysis.obligations.length > 0) {
-      addSectionHeader('📜 Legal Obligations', primaryColor)
+      addSectionHeader('LEGAL OBLIGATIONS', primaryColor)
       analysis.obligations.forEach((obligation, index) => {
         if (typeof obligation === 'object' && obligation !== null) {
           const obligationObj = obligation as any
@@ -179,7 +179,7 @@ export default function ResultsPage({ params }: { params: { id: string } }) {
           
           if (deadline) {
             pdf.setTextColor(...warningColor)
-            addText(`⏰ Deadline: ${deadline}`, 10, true, 20)
+            addText(`Deadline: ${deadline}`, 10, true, 20)
             pdf.setTextColor(0, 0, 0)
           }
         } else {
@@ -191,7 +191,7 @@ export default function ResultsPage({ params }: { params: { id: string } }) {
 
     // Important Clauses
     if (analysis.importantClauses && analysis.importantClauses.length > 0) {
-      addSectionHeader('📌 Important Clauses', accentColor)
+      addSectionHeader('IMPORTANT CLAUSES', accentColor)
       analysis.importantClauses.forEach((clause, index) => {
         if (typeof clause === 'object' && clause !== null) {
           const clauseObj = clause as any
@@ -204,7 +204,7 @@ export default function ResultsPage({ params }: { params: { id: string } }) {
           
           if (importance) {
             pdf.setTextColor(...secondaryColor)
-            addText(`💡 ${importance}`, 10, false, 20)
+            addText(`Note: ${importance}`, 10, false, 20)
             pdf.setTextColor(0, 0, 0)
           }
         } else {
@@ -216,7 +216,7 @@ export default function ResultsPage({ params }: { params: { id: string } }) {
 
     // Important Deadlines
     if (analysis.deadlines && analysis.deadlines.length > 0) {
-      addSectionHeader('⏰ Important Deadlines', warningColor)
+      addSectionHeader('IMPORTANT DEADLINES', warningColor)
       analysis.deadlines.forEach((deadline, index) => {
         if (typeof deadline === 'object' && deadline !== null) {
           const deadlineObj = deadline as any
@@ -226,12 +226,12 @@ export default function ResultsPage({ params }: { params: { id: string } }) {
           
           addText(`${index + 1}. ${description}`, 11, true, 5)
           pdf.setTextColor(...warningColor)
-          addText(`📅 Date: ${date}`, 10, true, 15)
+          addText(`Date: ${date}`, 10, true, 15)
           pdf.setTextColor(0, 0, 0)
           
           if (consequence) {
             pdf.setTextColor(...dangerColor)
-            addText(`⚠️ Consequence: ${consequence}`, 10, false, 15)
+            addText(`Consequence: ${consequence}`, 10, false, 15)
             pdf.setTextColor(0, 0, 0)
           }
         } else {
