@@ -41,93 +41,229 @@ export default function ResultsPage({ params }: { params: { id: string } }) {
     
     const pdf = new jsPDF()
     const pageWidth = pdf.internal.pageSize.getWidth()
+    const pageHeight = pdf.internal.pageSize.getHeight()
     const margin = 20
     const maxWidth = pageWidth - 2 * margin
-    let yPosition = 30
+    let yPosition = 20
+
+    // Color palette
+    const primaryColor: [number, number, number] = [37, 99, 235] // Blue
+    const secondaryColor: [number, number, number] = [100, 116, 139] // Gray
+    const accentColor: [number, number, number] = [16, 185, 129] // Green
+    const dangerColor: [number, number, number] = [239, 68, 68] // Red
+    const warningColor: [number, number, number] = [245, 158, 11] // Orange
+
+    // Helper function to check if we need a new page
+    const checkNewPage = (requiredSpace: number = 30) => {
+      if (yPosition > pageHeight - requiredSpace) {
+        pdf.addPage()
+        yPosition = 20
+        return true
+      }
+      return false
+    }
+
+    // Helper function to add a colored header box
+    const addSectionHeader = (title: string, color: [number, number, number] = primaryColor) => {
+      checkNewPage(40)
+      pdf.setFillColor(...color)
+      pdf.rect(margin, yPosition, maxWidth, 12, 'F')
+      pdf.setTextColor(255, 255, 255)
+      pdf.setFont('helvetica', 'bold')
+      pdf.setFontSize(14)
+      pdf.text(title, margin + 5, yPosition + 8)
+      pdf.setTextColor(0, 0, 0)
+      yPosition += 18
+    }
 
     // Helper function to add text with word wrapping
-    const addText = (text: string, fontSize: number = 12, isBold: boolean = false) => {
+    const addText = (text: string, fontSize: number = 11, isBold: boolean = false, indent: number = 0) => {
+      checkNewPage()
       pdf.setFontSize(fontSize)
-      if (isBold) {
-        pdf.setFont('helvetica', 'bold')
-      } else {
-        pdf.setFont('helvetica', 'normal')
-      }
+      pdf.setFont('helvetica', isBold ? 'bold' : 'normal')
       
-      const lines = pdf.splitTextToSize(text, maxWidth)
-      pdf.text(lines, margin, yPosition)
-      yPosition += lines.length * (fontSize * 0.4) + 5
-      
-      // Add new page if needed
-      if (yPosition > pdf.internal.pageSize.getHeight() - 30) {
-        pdf.addPage()
-        yPosition = 30
-      }
+      const lines = pdf.splitTextToSize(text, maxWidth - indent)
+      pdf.text(lines, margin + indent, yPosition)
+      yPosition += lines.length * (fontSize * 0.4) + 4
     }
 
-    // Add title
-    addText('Legal Document Analysis Report', 20, true)
-    yPosition += 10
+    // Add professional header with logo placeholder
+    pdf.setFillColor(...primaryColor)
+    pdf.rect(0, 0, pageWidth, 50, 'F')
     
-    // Add document info
-    addText(`Document Analysis Report`, 14, true)
-    addText(`Analysis Date: ${new Date().toLocaleDateString()}`, 12)
-    addText(`Document Type: ${analysis.documentType || 'Not specified'}`, 12)
-    yPosition += 10
+    pdf.setTextColor(255, 255, 255)
+    pdf.setFont('helvetica', 'bold')
+    pdf.setFontSize(24)
+    pdf.text('LegalEase AI', margin, 25)
+    
+    pdf.setFontSize(12)
+    pdf.setFont('helvetica', 'normal')
+    pdf.text('Legal Document Analysis Report', margin, 38)
+    
+    pdf.setTextColor(0, 0, 0)
+    yPosition = 60
 
-    // Add summary
+    // Document metadata box
+    pdf.setDrawColor(200, 200, 200)
+    pdf.setLineWidth(0.5)
+    pdf.rect(margin, yPosition, maxWidth, 30)
+    
+    pdf.setFontSize(10)
+    pdf.setTextColor(...secondaryColor)
+    pdf.text(`Report Generated: ${new Date().toLocaleString()}`, margin + 5, yPosition + 10)
+    pdf.text(`Document Type: ${analysis.documentType || 'Not specified'}`, margin + 5, yPosition + 18)
+    pdf.text(`Analysis ID: ${params.id.substring(0, 16)}...`, margin + 5, yPosition + 26)
+    
+    pdf.setTextColor(0, 0, 0)
+    yPosition += 40
+
+    // Executive Summary
     if (analysis.summary) {
-      addText('Executive Summary', 16, true)
-      addText(analysis.summary, 11)
-      yPosition += 10
+      addSectionHeader('📋 Executive Summary', primaryColor)
+      addText(analysis.summary, 11, false, 5)
+      yPosition += 8
     }
 
-    // Add key points
+    // Key Points
     if (analysis.keyPoints && analysis.keyPoints.length > 0) {
-      addText('Key Points', 16, true)
+      addSectionHeader('✨ Key Points', accentColor)
       analysis.keyPoints.forEach((point, index) => {
-        addText(`${index + 1}. ${point}`, 11)
+        const pointText = typeof point === 'string' ? point : (point as any).description || String(point)
+        addText(`${index + 1}. ${pointText}`, 11, false, 5)
       })
-      yPosition += 10
+      yPosition += 8
     }
 
-    // Add risks
+    // Legal Risks with color coding
     if (analysis.risks && analysis.risks.length > 0) {
-      addText('Legal Risks', 16, true)
+      addSectionHeader('⚠️ Legal Risks', dangerColor)
       analysis.risks.forEach((risk, index) => {
-        addText(`${index + 1}. ${risk}`, 11)
+        if (typeof risk === 'object' && risk !== null) {
+          const riskObj = risk as any
+          const level = riskObj.level || 'Medium'
+          const description = riskObj.description || String(risk)
+          const recommendation = riskObj.recommendation || ''
+          
+          // Risk level indicator
+          const levelColor = level === 'High' ? dangerColor : level === 'Medium' ? warningColor : accentColor
+          pdf.setTextColor(...levelColor)
+          addText(`${index + 1}. [${level.toUpperCase()}]`, 10, true, 5)
+          
+          pdf.setTextColor(0, 0, 0)
+          addText(description, 11, false, 15)
+          
+          if (recommendation) {
+            pdf.setTextColor(...secondaryColor)
+            addText(`→ Recommendation: ${recommendation}`, 10, false, 20)
+            pdf.setTextColor(0, 0, 0)
+          }
+        } else {
+          addText(`${index + 1}. ${String(risk)}`, 11, false, 5)
+        }
       })
-      yPosition += 10
+      yPosition += 8
     }
 
-    // Add obligations
+    // Legal Obligations
     if (analysis.obligations && analysis.obligations.length > 0) {
-      addText('Legal Obligations', 16, true)
+      addSectionHeader('📜 Legal Obligations', primaryColor)
       analysis.obligations.forEach((obligation, index) => {
-        addText(`${index + 1}. ${obligation}`, 11)
+        if (typeof obligation === 'object' && obligation !== null) {
+          const obligationObj = obligation as any
+          const party = obligationObj.party || 'Party'
+          const description = obligationObj.description || String(obligation)
+          const deadline = obligationObj.deadline || null
+          
+          addText(`${index + 1}. ${party}:`, 11, true, 5)
+          addText(description, 11, false, 15)
+          
+          if (deadline) {
+            pdf.setTextColor(...warningColor)
+            addText(`⏰ Deadline: ${deadline}`, 10, true, 20)
+            pdf.setTextColor(0, 0, 0)
+          }
+        } else {
+          addText(`${index + 1}. ${String(obligation)}`, 11, false, 5)
+        }
       })
-      yPosition += 10
+      yPosition += 8
     }
 
-    // Add important clauses
+    // Important Clauses
     if (analysis.importantClauses && analysis.importantClauses.length > 0) {
-      addText('Important Clauses', 16, true)
+      addSectionHeader('📌 Important Clauses', accentColor)
       analysis.importantClauses.forEach((clause, index) => {
-        addText(`${index + 1}. ${clause}`, 11)
+        if (typeof clause === 'object' && clause !== null) {
+          const clauseObj = clause as any
+          const title = clauseObj.title || `Clause ${index + 1}`
+          const content = clauseObj.content || String(clause)
+          const importance = clauseObj.importance || ''
+          
+          addText(`${index + 1}. ${title}`, 11, true, 5)
+          addText(content, 10, false, 15)
+          
+          if (importance) {
+            pdf.setTextColor(...secondaryColor)
+            addText(`💡 ${importance}`, 10, false, 20)
+            pdf.setTextColor(0, 0, 0)
+          }
+        } else {
+          addText(`${index + 1}. ${String(clause)}`, 11, false, 5)
+        }
       })
-      yPosition += 10
+      yPosition += 8
     }
 
-    // Add deadlines
+    // Important Deadlines
     if (analysis.deadlines && analysis.deadlines.length > 0) {
-      addText('Important Deadlines', 16, true)
+      addSectionHeader('⏰ Important Deadlines', warningColor)
       analysis.deadlines.forEach((deadline, index) => {
-        addText(`${index + 1}. ${deadline}`, 11)
+        if (typeof deadline === 'object' && deadline !== null) {
+          const deadlineObj = deadline as any
+          const description = deadlineObj.description || String(deadline)
+          const date = deadlineObj.date || 'Not specified'
+          const consequence = deadlineObj.consequence || ''
+          
+          addText(`${index + 1}. ${description}`, 11, true, 5)
+          pdf.setTextColor(...warningColor)
+          addText(`📅 Date: ${date}`, 10, true, 15)
+          pdf.setTextColor(0, 0, 0)
+          
+          if (consequence) {
+            pdf.setTextColor(...dangerColor)
+            addText(`⚠️ Consequence: ${consequence}`, 10, false, 15)
+            pdf.setTextColor(0, 0, 0)
+          }
+        } else {
+          addText(`${index + 1}. ${String(deadline)}`, 11, false, 5)
+        }
       })
+      yPosition += 8
+    }
+
+    // Footer on last page
+    const pageCount = (pdf as any).internal.getNumberOfPages()
+    for (let i = 1; i <= pageCount; i++) {
+      pdf.setPage(i)
+      
+      // Footer line
+      pdf.setDrawColor(...primaryColor)
+      pdf.setLineWidth(1)
+      pdf.line(margin, pageHeight - 20, pageWidth - margin, pageHeight - 20)
+      
+      // Footer text
+      pdf.setFontSize(9)
+      pdf.setTextColor(...secondaryColor)
+      pdf.text('Generated by LegalEase AI', margin, pageHeight - 12)
+      pdf.text(`Page ${i} of ${pageCount}`, pageWidth - margin - 30, pageHeight - 12)
+      
+      // Disclaimer
+      pdf.setFontSize(7)
+      pdf.text('This analysis is provided for informational purposes only and does not constitute legal advice.', margin, pageHeight - 6)
     }
 
     // Save the PDF
-    const fileName = `legal-analysis-${params.id}-${new Date().toISOString().split('T')[0]}.pdf`
+    const fileName = `LegalEase-Analysis-${new Date().toISOString().split('T')[0]}-${params.id.substring(0, 8)}.pdf`
     pdf.save(fileName)
   }
 
