@@ -11,6 +11,7 @@ import {
   FileText, 
   ArrowRightLeft, 
   BarChart3,
+  Clock,
   X,
   Menu
 } from "lucide-react"
@@ -92,6 +93,15 @@ export function MobileSidebar({ isOpen, onClose }: MobileSidebarProps) {
               >
                 <Upload className="w-5 h-5" />
                 <span>Upload Document</span>
+              </Link>
+              
+              <Link 
+                href="/history" 
+                className="flex items-center space-x-3 p-3 rounded-lg text-gray-700 hover:bg-gray-100 transition-colors"
+                onClick={handleLinkClick}
+              >
+                <Clock className="w-5 h-5" />
+                <span>Analysis History</span>
               </Link>
               
               <Link 

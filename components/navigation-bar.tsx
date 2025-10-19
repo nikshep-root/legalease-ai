@@ -64,6 +64,9 @@ export function NavigationBar() {
                   <Link href="/upload" className="text-gray-600 hover:text-gray-900 transition-colors">
                     Upload Document
                   </Link>
+                  <Link href="/history" className="text-gray-600 hover:text-gray-900 transition-colors">
+                    History
+                  </Link>
                   <Link href="/documents" className="text-gray-600 hover:text-gray-900 transition-colors">
                     Documents
                   </Link>
