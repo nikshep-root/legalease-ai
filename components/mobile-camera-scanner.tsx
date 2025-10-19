@@ -54,16 +54,18 @@ export default function MobileCameraScanner({ onComplete, onCancel }: MobileCame
       console.log('[Camera] Starting camera with facing mode:', facingMode);
       setError(null);
       setIsVideoReady(false);
+      setIsCameraActive(true); // Show loading state immediately
       
       // Check if getUserMedia is supported
       if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
-        throw new Error('Camera not supported on this browser');
+        throw new Error('Camera not supported on this browser. Please use Chrome, Edge, or Safari.');
       }
       
       let mediaStream: MediaStream | null = null;
       
       // Try with ideal constraints first
       try {
+        console.log('[Camera] Requesting camera access...');
         mediaStream = await navigator.mediaDevices.getUserMedia({
           video: {
             facingMode: facingMode,
@@ -71,12 +73,29 @@ export default function MobileCameraScanner({ onComplete, onCancel }: MobileCame
             height: { ideal: 1080 },
           },
         });
-      } catch (idealError) {
+      } catch (idealError: any) {
         console.warn('[Camera] Ideal constraints failed, trying basic:', idealError);
+        
+        // Check specific error types
+        if (idealError.name === 'NotAllowedError') {
+          throw new Error('Camera permission denied. Please click the camera icon in your browser address bar and allow access.');
+        } else if (idealError.name === 'NotFoundError') {
+          throw new Error('No camera found. Please connect a camera and try again.');
+        } else if (idealError.name === 'NotReadableError') {
+          throw new Error('Camera is already in use by another application. Please close other apps using the camera.');
+        }
+        
         // Fallback to basic constraints
-        mediaStream = await navigator.mediaDevices.getUserMedia({
-          video: { facingMode: facingMode },
-        });
+        try {
+          mediaStream = await navigator.mediaDevices.getUserMedia({
+            video: true,
+          });
+        } catch (basicError: any) {
+          if (basicError.name === 'NotAllowedError') {
+            throw new Error('Camera permission denied. Please allow camera access in your browser settings.');
+          }
+          throw basicError;
+        }
       }
       
       if (!mediaStream) {
@@ -89,6 +108,15 @@ export default function MobileCameraScanner({ onComplete, onCancel }: MobileCame
       if (videoRef.current) {
         videoRef.current.srcObject = mediaStream;
         
+        // Set a timeout in case video never loads
+        const timeout = setTimeout(() => {
+          if (!isVideoReady) {
+            console.error('[Camera] Video loading timeout');
+            setError('Camera is taking too long to load. Please refresh and try again.');
+            stopCamera();
+          }
+        }, 10000); // 10 second timeout
+        
         // Wait for video to be ready
         videoRef.current.onloadedmetadata = async () => {
           console.log('[Camera] Video metadata loaded, dimensions:', 
@@ -98,28 +126,40 @@ export default function MobileCameraScanner({ onComplete, onCancel }: MobileCame
             console.log('[Camera] Video playing');
           } catch (playErr) {
             console.error('[Camera] Play error:', playErr);
+            clearTimeout(timeout);
           }
         };
         
         videoRef.current.oncanplay = () => {
           console.log('[Camera] Video can play - ready!');
           setIsVideoReady(true);
+          clearTimeout(timeout);
         };
         
         videoRef.current.onerror = (e) => {
           console.error('[Camera] Video element error:', e);
+          clearTimeout(timeout);
+          setError('Camera video error. Please refresh and try again.');
         };
       } else {
         console.error('[Camera] Video ref not available');
+        throw new Error('Camera component not ready. Please refresh the page.');
       }
       
       setStream(mediaStream);
-      setIsCameraActive(true);
       console.log('[Camera] Camera activated');
-    } catch (err) {
+    } catch (err: any) {
       console.error('[Camera] Camera access error:', err);
-      setError(`Camera access denied: ${err instanceof Error ? err.message : 'Unknown error'}. Please allow camera permissions.`);
+      const errorMessage = err instanceof Error ? err.message : 'Unknown error. Please try again.';
+      setError(errorMessage);
       setIsCameraActive(false);
+      setIsVideoReady(false);
+      
+      // Stop any partially started stream
+      if (stream) {
+        stream.getTracks().forEach(track => track.stop());
+        setStream(null);
+      }
     }
   };
 
@@ -427,11 +467,25 @@ export default function MobileCameraScanner({ onComplete, onCancel }: MobileCame
                 
                 {/* Loading indicator while video initializes */}
                 {!isVideoReady && (
-                  <div className="absolute inset-0 flex items-center justify-center bg-black/70 z-10">
-                    <div className="text-white text-center space-y-2">
+                  <div className="absolute inset-0 flex items-center justify-center bg-black/90 z-10">
+                    <div className="text-white text-center space-y-3 px-4 max-w-md">
                       <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-white mx-auto"></div>
-                      <p className="text-sm">Initializing camera...</p>
-                      <p className="text-xs text-gray-300">Please allow camera access if prompted</p>
+                      <p className="text-sm font-medium">Initializing camera...</p>
+                      <div className="text-xs text-gray-300 space-y-1">
+                        <p>⚠️ If camera doesn't appear:</p>
+                        <p>1. Look for camera permission popup</p>
+                        <p>2. Check browser address bar for camera icon 📷</p>
+                        <p>3. Allow camera access in browser settings</p>
+                        <p>4. Close other apps using the camera</p>
+                      </div>
+                      <Button
+                        onClick={stopCamera}
+                        variant="outline"
+                        size="sm"
+                        className="mt-2"
+                      >
+                        Cancel
+                      </Button>
                     </div>
                   </div>
                 )}
