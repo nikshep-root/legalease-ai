@@ -44,15 +44,31 @@ export default function MobileCameraScanner({ onComplete, onCancel }: MobileCame
         throw new Error('Camera not supported on this browser');
       }
       
-      const mediaStream = await navigator.mediaDevices.getUserMedia({
-        video: {
-          facingMode: facingMode,
-          width: { ideal: 1920 },
-          height: { ideal: 1080 },
-        },
-      });
+      let mediaStream: MediaStream | null = null;
       
-      console.log('[Camera] Media stream obtained:', mediaStream.active);
+      // Try with ideal constraints first
+      try {
+        mediaStream = await navigator.mediaDevices.getUserMedia({
+          video: {
+            facingMode: facingMode,
+            width: { ideal: 1920 },
+            height: { ideal: 1080 },
+          },
+        });
+      } catch (idealError) {
+        console.warn('[Camera] Ideal constraints failed, trying basic:', idealError);
+        // Fallback to basic constraints
+        mediaStream = await navigator.mediaDevices.getUserMedia({
+          video: { facingMode: facingMode },
+        });
+      }
+      
+      if (!mediaStream) {
+        throw new Error('Failed to get media stream');
+      }
+      
+      console.log('[Camera] Media stream obtained:', mediaStream.active, 
+        'tracks:', mediaStream.getTracks().length);
       
       if (videoRef.current) {
         videoRef.current.srcObject = mediaStream;
@@ -87,6 +103,7 @@ export default function MobileCameraScanner({ onComplete, onCancel }: MobileCame
     } catch (err) {
       console.error('[Camera] Camera access error:', err);
       setError(`Camera access denied: ${err instanceof Error ? err.message : 'Unknown error'}. Please allow camera permissions.`);
+      setIsCameraActive(false);
     }
   };
 
