@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Camera, X, Check, Plus, Upload, RotateCw } from 'lucide-react';
 import { useRouter } from 'next/navigation';
+import { extractTextFromCanvas } from '@/lib/ocr-processor';
 
 interface CapturedImage {
   id: string;
@@ -147,33 +148,71 @@ export default function MobileCameraScanner({ onComplete, onCancel }: MobileCame
     stopCamera();
 
     try {
-      const formData = new FormData();
+      // Process all images with OCR
+      let combinedText = '';
       
-      // If multiple images, we'll need to handle them
-      // For now, let's upload them individually or combine
-      if (capturedImages.length === 1) {
-        formData.append('file', capturedImages[0].file);
-      } else {
-        // For multiple images, upload the first one
-        // You can extend this to create a PDF with all pages
-        formData.append('file', capturedImages[0].file);
-        // TODO: Combine multiple images into single PDF
+      for (let i = 0; i < capturedImages.length; i++) {
+        const image = capturedImages[i];
+        
+        // Create a temporary canvas to extract text from image
+        const tempCanvas = document.createElement('canvas');
+        const tempImg = new Image();
+        
+        // Wait for image to load
+        await new Promise((resolve, reject) => {
+          tempImg.onload = resolve;
+          tempImg.onerror = reject;
+          tempImg.src = image.dataUrl;
+        });
+        
+        // Set canvas size and draw image
+        tempCanvas.width = tempImg.width;
+        tempCanvas.height = tempImg.height;
+        const ctx = tempCanvas.getContext('2d');
+        if (!ctx) throw new Error('Canvas context not available');
+        
+        ctx.drawImage(tempImg, 0, 0);
+        
+        // Extract text using OCR
+        const pageText = await extractTextFromCanvas(tempCanvas);
+        
+        if (capturedImages.length > 1) {
+          combinedText += `\n\n=== Page ${i + 1} ===\n\n${pageText}`;
+        } else {
+          combinedText = pageText;
+        }
       }
 
+      if (!combinedText || combinedText.trim().length === 0) {
+        throw new Error('No text could be extracted from the images. Please ensure the document is clear and well-lit.');
+      }
+
+      // Send extracted text to analyze API
       const response = await fetch('/api/analyze', {
         method: 'POST',
-        body: formData,
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          text: combinedText,
+          fileName: `scanned-document-${Date.now()}.jpg`,
+        }),
       });
 
       if (!response.ok) {
-        throw new Error('Upload failed');
+        throw new Error('Analysis failed');
       }
 
       const result = await response.json();
 
       // Navigate to results page
-      if (result.id) {
-        router.push(`/results/${result.id}`);
+      if (result.documentId) {
+        router.push(`/results/${result.documentId}`);
+      } else {
+        // Fallback: store result in localStorage and navigate
+        const analysisId = `analysis_scan_${Date.now()}`;
+        localStorage.setItem(analysisId, JSON.stringify(result.analysis));
+        router.push(`/results/${analysisId}`);
       }
 
       // Call completion callback
@@ -182,7 +221,8 @@ export default function MobileCameraScanner({ onComplete, onCancel }: MobileCame
       }
     } catch (err) {
       console.error('Upload error:', err);
-      setError('Failed to upload document. Please try again.');
+      const errorMessage = err instanceof Error ? err.message : 'Failed to process document. Please try again.';
+      setError(errorMessage);
     } finally {
       setIsProcessing(false);
     }
@@ -357,7 +397,10 @@ export default function MobileCameraScanner({ onComplete, onCancel }: MobileCame
                   size="lg"
                 >
                   {isProcessing ? (
-                    <>Processing...</>
+                    <>
+                      <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin mr-2" />
+                      Extracting Text...
+                    </>
                   ) : (
                     <>
                       <Check className="mr-2 h-5 w-5" />
