@@ -68,6 +68,9 @@ export function NavigationBar() {
                   <Link href="/history" className="text-gray-600 hover:text-gray-900 transition-colors">
                     History
                   </Link>
+                  <Link href="/analytics" className="text-gray-600 hover:text-gray-900 transition-colors">
+                    Analytics
+                  </Link>
                   <Link href="/documents" className="text-gray-600 hover:text-gray-900 transition-colors">
                     Documents
                   </Link>

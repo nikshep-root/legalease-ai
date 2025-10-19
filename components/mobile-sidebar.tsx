@@ -12,6 +12,7 @@ import {
   ArrowRightLeft, 
   BarChart3,
   Clock,
+  TrendingUp,
   X,
   Menu
 } from "lucide-react"
@@ -102,6 +103,15 @@ export function MobileSidebar({ isOpen, onClose }: MobileSidebarProps) {
               >
                 <Clock className="w-5 h-5" />
                 <span>Analysis History</span>
+              </Link>
+              
+              <Link 
+                href="/analytics" 
+                className="flex items-center space-x-3 p-3 rounded-lg text-gray-700 hover:bg-gray-100 transition-colors"
+                onClick={handleLinkClick}
+              >
+                <TrendingUp className="w-5 h-5" />
+                <span>Risk Analytics</span>
               </Link>
               
               <Link 
