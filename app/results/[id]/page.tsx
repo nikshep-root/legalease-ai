@@ -14,6 +14,8 @@ import { getRiskColor, getRiskBadgeVariant } from "@/lib/document-processor"
 import { TextToSpeechControls } from "@/components/text-to-speech-controls"
 import { DocumentChat } from "@/components/document-chat"
 import { ExportDialog } from "@/components/export-dialog"
+import { DocumentHealthScore } from "@/components/document-health-score"
+import { SmartTimeline } from "@/components/smart-timeline"
 
 export default function ResultsPage({ params }: { params: { id: string } }) {
   const [analysis, setAnalysis] = useState<DocumentAnalysis | null>(null)
@@ -350,8 +352,11 @@ export default function ResultsPage({ params }: { params: { id: string } }) {
           </div>
           <h1 className="text-3xl font-bold mb-4">Document Analysis Results</h1>
 
+          {/* Document Health Score */}
+          <DocumentHealthScore analysis={analysis} />
+
           {/* Executive Summary with Text-to-Speech and Chat */}
-          <div className="grid lg:grid-cols-3 gap-6">
+          <div className="grid lg:grid-cols-3 gap-6 mt-6">
             <div className="lg:col-span-2">
               <Card>
                 <CardHeader>
@@ -370,6 +375,11 @@ export default function ResultsPage({ params }: { params: { id: string } }) {
               <TextToSpeechControls text={analysis.summary} title="Listen to Summary" />
               <DocumentChat analysis={analysis} />
             </div>
+          </div>
+
+          {/* Smart Timeline */}
+          <div className="mt-6">
+            <SmartTimeline analysis={analysis} />
           </div>
         </div>
 
