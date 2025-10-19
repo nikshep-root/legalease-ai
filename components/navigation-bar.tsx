@@ -6,6 +6,7 @@ import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import { User, LogOut, Scale } from "lucide-react"
 import { MobileSidebar, MobileMenuButton } from "@/components/mobile-sidebar"
+import { ThemeToggle } from "@/components/theme-toggle"
 
 export function NavigationBar() {
   const { data: session, status } = useSession()
@@ -82,6 +83,7 @@ export function NavigationBar() {
 
             {/* Desktop User Menu */}
             <div className="hidden md:flex items-center space-x-4">
+              <ThemeToggle />
               {session ? (
                 <div className="flex items-center space-x-3">
                   <div className="flex items-center space-x-2">
@@ -117,7 +119,8 @@ export function NavigationBar() {
             </div>
 
             {/* Mobile User Avatar/Sign In Button */}
-            <div className="md:hidden">
+            <div className="md:hidden flex items-center space-x-2">
+              <ThemeToggle />
               {session ? (
                 <div className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center">
                   <User className="w-4 h-4 text-blue-600" />
