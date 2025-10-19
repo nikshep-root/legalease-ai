@@ -373,6 +373,17 @@ export default function MobileCameraScanner({ onComplete, onCancel }: MobileCame
             </div>
           )}
 
+          {/* Debug info (remove in production) */}
+          {process.env.NODE_ENV === 'development' && (
+            <div className="bg-blue-50 border border-blue-200 px-3 py-2 rounded text-xs space-y-1">
+              <div><strong>Debug:</strong></div>
+              <div>Camera Active: {isCameraActive ? '✅' : '❌'}</div>
+              <div>Video Ready: {isVideoReady ? '✅' : '❌'}</div>
+              <div>Stream: {stream ? '✅' : '❌'}</div>
+              <div>Images Captured: {capturedImages.length}</div>
+            </div>
+          )}
+
           {/* Camera controls */}
           {!isCameraActive && capturedImages.length === 0 && (
             <div className="flex flex-col sm:flex-row gap-3">
@@ -402,7 +413,6 @@ export default function MobileCameraScanner({ onComplete, onCancel }: MobileCame
             type="file"
             accept="image/*"
             multiple
-            capture="environment"
             onChange={handleFileInput}
             className="hidden"
           />
@@ -410,29 +420,36 @@ export default function MobileCameraScanner({ onComplete, onCancel }: MobileCame
           {/* Camera view */}
           {isCameraActive && (
             <div className="space-y-3">
-              <div className="relative bg-black rounded-lg overflow-hidden aspect-[4/3]">
+              <div className="relative bg-gray-900 rounded-lg overflow-hidden" style={{ aspectRatio: '4/3', minHeight: '300px' }}>
                 <video
                   ref={videoRef}
                   autoPlay
                   playsInline
                   muted
-                  className="w-full h-full object-cover"
+                  className="absolute inset-0 w-full h-full object-cover"
+                  style={{ backgroundColor: '#000' }}
                 />
                 
                 {/* Loading indicator while video initializes */}
                 {!isVideoReady && (
-                  <div className="absolute inset-0 flex items-center justify-center bg-black/50">
+                  <div className="absolute inset-0 flex items-center justify-center bg-black/70 z-10">
                     <div className="text-white text-center space-y-2">
                       <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-white mx-auto"></div>
-                      <p>Initializing camera...</p>
+                      <p className="text-sm">Initializing camera...</p>
+                      <p className="text-xs text-gray-300">Please allow camera access if prompted</p>
                     </div>
                   </div>
                 )}
                 
                 {/* Camera overlay guide */}
-                <div className="absolute inset-0 pointer-events-none">
-                  <div className="absolute inset-8 border-2 border-white/50 rounded-lg" />
-                </div>
+                {isVideoReady && (
+                  <div className="absolute inset-0 pointer-events-none z-20">
+                    <div className="absolute inset-8 border-2 border-white/50 rounded-lg" />
+                    <div className="absolute top-4 left-1/2 transform -translate-x-1/2 bg-black/50 text-white text-xs px-3 py-1 rounded-full">
+                      Position document within frame
+                    </div>
+                  </div>
+                )}
               </div>
 
               {/* Camera controls */}
