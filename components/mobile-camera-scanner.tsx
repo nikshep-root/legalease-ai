@@ -30,11 +30,13 @@ export default function MobileCameraScanner({ onComplete, onCancel }: MobileCame
   const [isProcessing, setIsProcessing] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [facingMode, setFacingMode] = useState<'user' | 'environment'>('environment');
+  const [isVideoReady, setIsVideoReady] = useState(false);
 
   // Start camera
   const startCamera = async () => {
     try {
       setError(null);
+      setIsVideoReady(false);
       const mediaStream = await navigator.mediaDevices.getUserMedia({
         video: {
           facingMode: facingMode,
@@ -45,7 +47,17 @@ export default function MobileCameraScanner({ onComplete, onCancel }: MobileCame
       
       if (videoRef.current) {
         videoRef.current.srcObject = mediaStream;
-        await videoRef.current.play();
+        
+        // Wait for video to be ready
+        videoRef.current.onloadedmetadata = () => {
+          console.log('Video metadata loaded');
+          videoRef.current?.play();
+        };
+        
+        videoRef.current.oncanplay = () => {
+          console.log('Video can play');
+          setIsVideoReady(true);
+        };
       }
       
       setStream(mediaStream);
@@ -77,41 +89,86 @@ export default function MobileCameraScanner({ onComplete, onCancel }: MobileCame
 
   // Capture photo
   const capturePhoto = () => {
-    if (!videoRef.current || !canvasRef.current) return;
+    if (!videoRef.current || !canvasRef.current) {
+      console.error('[Camera] Video or canvas ref not available');
+      setError('Camera not ready. Please try again.');
+      return;
+    }
 
     const video = videoRef.current;
     const canvas = canvasRef.current;
+    
+    // Check if video is actually playing
+    if (video.readyState !== video.HAVE_ENOUGH_DATA) {
+      console.error('[Camera] Video not ready, readyState:', video.readyState);
+      setError('Video not ready. Please wait a moment and try again.');
+      return;
+    }
+    
+    if (!isVideoReady) {
+      console.error('[Camera] Video state not ready');
+      setError('Camera is loading. Please wait a moment.');
+      return;
+    }
+    
     const context = canvas.getContext('2d');
 
-    if (!context) return;
+    if (!context) {
+      console.error('[Camera] Canvas context not available');
+      setError('Canvas error. Please refresh and try again.');
+      return;
+    }
 
-    // Set canvas size to video size
-    canvas.width = video.videoWidth;
-    canvas.height = video.videoHeight;
+    try {
+      // Set canvas size to video size
+      canvas.width = video.videoWidth || 1920;
+      canvas.height = video.videoHeight || 1080;
 
-    // Draw video frame to canvas
-    context.drawImage(video, 0, 0, canvas.width, canvas.height);
+      console.log('[Camera] Capturing image:', canvas.width, 'x', canvas.height);
 
-    // Convert to blob and create file
-    canvas.toBlob((blob) => {
-      if (!blob) return;
+      // Flash effect
+      if (video.parentElement) {
+        video.parentElement.style.opacity = '0.3';
+        setTimeout(() => {
+          if (video.parentElement) {
+            video.parentElement.style.opacity = '1';
+          }
+        }, 150);
+      }
 
-      const timestamp = Date.now();
-      const file = new File([blob], `scan-${timestamp}.jpg`, {
-        type: 'image/jpeg',
-      });
+      // Draw video frame to canvas
+      context.drawImage(video, 0, 0, canvas.width, canvas.height);
 
-      const dataUrl = canvas.toDataURL('image/jpeg', 0.92);
+      // Convert to blob and create file
+      canvas.toBlob((blob) => {
+        if (!blob) {
+          console.error('[Camera] Failed to create blob');
+          setError('Failed to capture image. Please try again.');
+          return;
+        }
 
-      const newImage: CapturedImage = {
-        id: `img-${timestamp}`,
-        dataUrl,
-        file,
-        timestamp,
-      };
+        const timestamp = Date.now();
+        const file = new File([blob], `scan-${timestamp}.jpg`, {
+          type: 'image/jpeg',
+        });
 
-      setCapturedImages(prev => [...prev, newImage]);
-    }, 'image/jpeg', 0.92);
+        const dataUrl = canvas.toDataURL('image/jpeg', 0.92);
+
+        const newImage: CapturedImage = {
+          id: `img-${timestamp}`,
+          dataUrl,
+          file,
+          timestamp,
+        };
+
+        console.log('[Camera] Image captured successfully:', newImage.id);
+        setCapturedImages(prev => [...prev, newImage]);
+        setError(null);
+      }, 'image/jpeg', 0.92);
+    } catch (err) {
+      console.error('[Camera] Capture error:', err);
+      setError('Failed to capture image. Please try again.');
+    }
   };
 
   // Remove captured image
@@ -335,6 +392,8 @@ export default function MobileCameraScanner({ onComplete, onCancel }: MobileCame
                   onClick={capturePhoto}
                   size="lg"
                   className="h-16 w-16 rounded-full"
+                  disabled={!isVideoReady}
+                  title={isVideoReady ? 'Capture photo' : 'Camera loading...'}
                 >
                   <Camera className="h-6 w-6" />
                 </Button>
