@@ -13,6 +13,7 @@ import type { DocumentAnalysis } from "@/lib/document-processor"
 import { getRiskColor, getRiskBadgeVariant } from "@/lib/document-processor"
 import { TextToSpeechControls } from "@/components/text-to-speech-controls"
 import { DocumentChat } from "@/components/document-chat"
+import { ExportDialog } from "@/components/export-dialog"
 
 export default function ResultsPage({ params }: { params: { id: string } }) {
   const [analysis, setAnalysis] = useState<DocumentAnalysis | null>(null)
@@ -544,10 +545,7 @@ export default function ResultsPage({ params }: { params: { id: string } }) {
           <Button asChild className="flex-1">
             <Link href="/upload">Analyze Another Document</Link>
           </Button>
-          <Button variant="outline" className="flex-1 bg-transparent" onClick={handleExport}>
-            <Download className="w-4 h-4 mr-2" />
-            Download Report
-          </Button>
+          <ExportDialog analysis={analysis} documentId={params.id} />
           <Button variant="outline" className="flex-1 bg-transparent" onClick={handleShare}>
             <Share2 className="w-4 h-4 mr-2" />
             Share Analysis

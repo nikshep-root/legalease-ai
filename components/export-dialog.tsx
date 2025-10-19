@@ -1,0 +1,353 @@
+'use client';
+
+import { useState } from 'react';
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
+import { Download, FileText, FileSpreadsheet, FileJson, CheckCircle2 } from 'lucide-react';
+import jsPDF from 'jspdf';
+import type { DocumentAnalysis } from '@/lib/document-processor';
+
+interface ExportDialogProps {
+  analysis: DocumentAnalysis;
+  documentId: string;
+}
+
+export function ExportDialog({ analysis, documentId }: ExportDialogProps) {
+  const [isOpen, setIsOpen] = useState(false);
+  const [exportingFormat, setExportingFormat] = useState<string | null>(null);
+
+  const exportToPDF = () => {
+    setExportingFormat('pdf');
+    
+    const pdf = new jsPDF();
+    const pageWidth = pdf.internal.pageSize.getWidth();
+    const pageHeight = pdf.internal.pageSize.getHeight();
+    const margin = 20;
+    const maxWidth = pageWidth - 2 * margin;
+    let yPosition = 20;
+
+    const primaryColor: [number, number, number] = [37, 99, 235];
+    const secondaryColor: [number, number, number] = [100, 116, 139];
+    const accentColor: [number, number, number] = [16, 185, 129];
+    const dangerColor: [number, number, number] = [239, 68, 68];
+    const warningColor: [number, number, number] = [245, 158, 11];
+
+    const checkNewPage = (requiredSpace: number = 30) => {
+      if (yPosition > pageHeight - requiredSpace) {
+        pdf.addPage();
+        yPosition = 20;
+        return true;
+      }
+      return false;
+    };
+
+    const addSectionHeader = (title: string, color: [number, number, number] = primaryColor) => {
+      checkNewPage(40);
+      pdf.setFillColor(...color);
+      pdf.rect(margin, yPosition, maxWidth, 10, 'F');
+      pdf.setTextColor(255, 255, 255);
+      pdf.setFont('helvetica', 'bold');
+      pdf.setFontSize(13);
+      pdf.text(title, margin + 5, yPosition + 7);
+      pdf.setTextColor(0, 0, 0);
+      yPosition += 16;
+    };
+
+    const addText = (text: string, fontSize: number = 11, isBold: boolean = false, indent: number = 0) => {
+      checkNewPage();
+      pdf.setFontSize(fontSize);
+      pdf.setFont('helvetica', isBold ? 'bold' : 'normal');
+      const lines = pdf.splitTextToSize(text, maxWidth - indent);
+      pdf.text(lines, margin + indent, yPosition);
+      yPosition += lines.length * (fontSize * 0.4) + 4;
+    };
+
+    // Header
+    pdf.setFillColor(...primaryColor);
+    pdf.rect(0, 0, pageWidth, 50, 'F');
+    pdf.setTextColor(255, 255, 255);
+    pdf.setFont('helvetica', 'bold');
+    pdf.setFontSize(24);
+    pdf.text('LegalEase AI', margin, 25);
+    pdf.setFontSize(12);
+    pdf.setFont('helvetica', 'normal');
+    pdf.text('Legal Document Analysis Report', margin, 38);
+    pdf.setTextColor(0, 0, 0);
+    yPosition = 60;
+
+    // Metadata
+    pdf.setDrawColor(200, 200, 200);
+    pdf.setLineWidth(0.5);
+    pdf.rect(margin, yPosition, maxWidth, 30);
+    pdf.setFontSize(10);
+    pdf.setTextColor(...secondaryColor);
+    pdf.text(`Report Generated: ${new Date().toLocaleString()}`, margin + 5, yPosition + 10);
+    pdf.text(`Document Type: ${analysis.documentType}`, margin + 5, yPosition + 18);
+    pdf.text(`Analysis ID: ${documentId.substring(0, 16)}...`, margin + 5, yPosition + 26);
+    pdf.setTextColor(0, 0, 0);
+    yPosition += 40;
+
+    // Summary
+    if (analysis.summary) {
+      addSectionHeader('EXECUTIVE SUMMARY', primaryColor);
+      addText(analysis.summary, 11, false, 5);
+      yPosition += 8;
+    }
+
+    // Key Points
+    if (analysis.keyPoints?.length > 0) {
+      addSectionHeader('KEY POINTS', accentColor);
+      analysis.keyPoints.forEach((point, index) => {
+        addText(`${index + 1}. ${point}`, 11, false, 5);
+      });
+      yPosition += 8;
+    }
+
+    // Risks
+    if (analysis.risks?.length > 0) {
+      addSectionHeader('LEGAL RISKS', dangerColor);
+      analysis.risks.forEach((risk, index) => {
+        const levelColor = risk.level === 'High' ? dangerColor : risk.level === 'Medium' ? warningColor : accentColor;
+        pdf.setTextColor(...levelColor);
+        addText(`${index + 1}. [${risk.level.toUpperCase()}]`, 10, true, 5);
+        pdf.setTextColor(0, 0, 0);
+        addText(risk.description, 11, false, 15);
+        if (risk.recommendation) {
+          pdf.setTextColor(...secondaryColor);
+          addText(`Recommendation: ${risk.recommendation}`, 10, false, 20);
+          pdf.setTextColor(0, 0, 0);
+        }
+      });
+    }
+
+    // Footer
+    const pageCount = (pdf as any).internal.getNumberOfPages();
+    for (let i = 1; i <= pageCount; i++) {
+      pdf.setPage(i);
+      pdf.setDrawColor(...primaryColor);
+      pdf.setLineWidth(1);
+      pdf.line(margin, pageHeight - 15, pageWidth - margin, pageHeight - 15);
+      pdf.setFontSize(8);
+      pdf.setTextColor(...secondaryColor);
+      pdf.text(`Page ${i} of ${pageCount}`, margin, pageHeight - 8);
+      pdf.text('Generated by LegalEase AI', pageWidth - margin - 50, pageHeight - 8);
+    }
+
+    pdf.save(`legal-analysis-${documentId}.pdf`);
+    
+    setTimeout(() => {
+      setExportingFormat(null);
+      setIsOpen(false);
+    }, 1000);
+  };
+
+  const exportToJSON = () => {
+    setExportingFormat('json');
+    
+    const jsonData = {
+      exportDate: new Date().toISOString(),
+      documentId,
+      documentType: analysis.documentType,
+      analysis: {
+        summary: analysis.summary,
+        keyPoints: analysis.keyPoints,
+        risks: analysis.risks,
+        obligations: analysis.obligations,
+        importantClauses: analysis.importantClauses,
+        deadlines: analysis.deadlines,
+      },
+      metadata: {
+        generatedBy: 'LegalEase AI',
+        version: '1.0',
+      },
+    };
+
+    const blob = new Blob([JSON.stringify(jsonData, null, 2)], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = `legal-analysis-${documentId}.json`;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
+
+    setTimeout(() => {
+      setExportingFormat(null);
+      setIsOpen(false);
+    }, 1000);
+  };
+
+  const exportToCSV = () => {
+    setExportingFormat('csv');
+    
+    // Create CSV for risks
+    let csv = 'Risk Analysis Report\n\n';
+    csv += `Document Type,${analysis.documentType}\n`;
+    csv += `Export Date,${new Date().toLocaleString()}\n`;
+    csv += `Document ID,${documentId}\n\n`;
+    
+    csv += 'RISKS\n';
+    csv += 'Level,Description,Recommendation\n';
+    analysis.risks.forEach(risk => {
+      csv += `"${risk.level}","${risk.description.replace(/"/g, '""')}","${(risk.recommendation || '').replace(/"/g, '""')}"\n`;
+    });
+    
+    csv += '\nOBLIGATIONS\n';
+    csv += 'Party,Description,Deadline\n';
+    analysis.obligations.forEach(obligation => {
+      csv += `"${obligation.party}","${obligation.description.replace(/"/g, '""')}","${obligation.deadline || 'N/A'}"\n`;
+    });
+
+    const blob = new Blob([csv], { type: 'text/csv' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = `legal-analysis-${documentId}.csv`;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
+
+    setTimeout(() => {
+      setExportingFormat(null);
+      setIsOpen(false);
+    }, 1000);
+  };
+
+  const exportToMarkdown = () => {
+    setExportingFormat('md');
+    
+    let markdown = `# Legal Document Analysis Report\n\n`;
+    markdown += `**Document Type:** ${analysis.documentType}\n`;
+    markdown += `**Export Date:** ${new Date().toLocaleString()}\n`;
+    markdown += `**Document ID:** ${documentId}\n\n`;
+    
+    markdown += `---\n\n`;
+    
+    markdown += `## Executive Summary\n\n${analysis.summary}\n\n`;
+    
+    markdown += `## Key Points\n\n`;
+    analysis.keyPoints.forEach((point, index) => {
+      markdown += `${index + 1}. ${point}\n`;
+    });
+    markdown += `\n`;
+    
+    markdown += `## Legal Risks\n\n`;
+    analysis.risks.forEach((risk, index) => {
+      markdown += `### ${index + 1}. [${risk.level}] ${risk.description}\n\n`;
+      if (risk.recommendation) {
+        markdown += `**Recommendation:** ${risk.recommendation}\n\n`;
+      }
+    });
+    
+    markdown += `## Legal Obligations\n\n`;
+    analysis.obligations.forEach((obligation, index) => {
+      markdown += `### ${index + 1}. ${obligation.party}\n\n`;
+      markdown += `${obligation.description}\n\n`;
+      if (obligation.deadline) {
+        markdown += `**Deadline:** ${obligation.deadline}\n\n`;
+      }
+    });
+    
+    markdown += `---\n\n`;
+    markdown += `*Generated by LegalEase AI*\n`;
+
+    const blob = new Blob([markdown], { type: 'text/markdown' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = `legal-analysis-${documentId}.md`;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
+
+    setTimeout(() => {
+      setExportingFormat(null);
+      setIsOpen(false);
+    }, 1000);
+  };
+
+  const exportFormats = [
+    {
+      id: 'pdf',
+      name: 'PDF Report',
+      description: 'Professional formatted document with styling',
+      icon: FileText,
+      color: 'text-red-600',
+      action: exportToPDF,
+    },
+    {
+      id: 'json',
+      name: 'JSON Data',
+      description: 'Structured data for programmatic use',
+      icon: FileJson,
+      color: 'text-blue-600',
+      action: exportToJSON,
+    },
+    {
+      id: 'csv',
+      name: 'CSV Spreadsheet',
+      description: 'Table format for Excel and data analysis',
+      icon: FileSpreadsheet,
+      color: 'text-green-600',
+      action: exportToCSV,
+    },
+    {
+      id: 'md',
+      name: 'Markdown',
+      description: 'Plain text format for documentation',
+      icon: FileText,
+      color: 'text-purple-600',
+      action: exportToMarkdown,
+    },
+  ];
+
+  return (
+    <Dialog open={isOpen} onOpenChange={setIsOpen}>
+      <DialogTrigger asChild>
+        <Button variant="outline" className="flex-1 bg-transparent">
+          <Download className="w-4 h-4 mr-2" />
+          Export Report
+        </Button>
+      </DialogTrigger>
+      <DialogContent className="sm:max-w-[525px]">
+        <DialogHeader>
+          <DialogTitle>Export Analysis Report</DialogTitle>
+          <DialogDescription>Choose your preferred export format for the document analysis.</DialogDescription>
+        </DialogHeader>
+        <div className="grid gap-4 py-4">
+          {exportFormats.map((format) => (
+            <button
+              key={format.id}
+              onClick={format.action}
+              disabled={exportingFormat !== null}
+              className="flex items-start gap-4 p-4 border rounded-lg hover:bg-accent hover:border-primary transition-all disabled:opacity-50 disabled:cursor-not-allowed text-left"
+            >
+              <div className={`w-10 h-10 rounded-lg bg-${format.color.split('-')[1]}-100 dark:bg-${format.color.split('-')[1]}-950/20 flex items-center justify-center flex-shrink-0`}>
+                <format.icon className={`w-5 h-5 ${format.color}`} />
+              </div>
+              <div className="flex-1">
+                <div className="flex items-center gap-2 mb-1">
+                  <h4 className="font-semibold">{format.name}</h4>
+                  {exportingFormat === format.id && (
+                    <Badge variant="secondary" className="animate-pulse">
+                      <CheckCircle2 className="w-3 h-3 mr-1" />
+                      Exporting...
+                    </Badge>
+                  )}
+                </div>
+                <p className="text-sm text-muted-foreground">{format.description}</p>
+              </div>
+            </button>
+          ))}
+        </div>
+        <div className="text-xs text-muted-foreground">
+          All exports include the complete analysis with executive summary, risks, obligations, clauses, and deadlines.
+        </div>
+      </DialogContent>
+    </Dialog>
+  );
+}
