@@ -30,25 +30,28 @@ export async function extractTextWithOcr(imageData: ImageData): Promise<string> 
 // Enhanced OCR function for canvas elements
 export async function extractTextFromCanvas(canvas: HTMLCanvasElement): Promise<string> {
   try {
-
+    console.log('[OCR] Starting OCR on canvas:', canvas.width, 'x', canvas.height);
     
     // Use the existing cached worker for better performance
     const worker = await getOcrWorker();
     
+    console.log('[OCR] Worker ready, starting recognition...');
 
     const result = await worker.recognize(canvas);
     
     const extractedText = result.data.text.trim();
     console.log('[OCR] Canvas OCR completed, extracted:', extractedText.length, 'characters');
+    console.log('[OCR] Confidence:', result.data.confidence);
+    
     if (extractedText.length > 0) {
-      console.log('[OCR] First 100 chars:', extractedText.substring(0, 100));
+      console.log('[OCR] First 200 chars:', extractedText.substring(0, 200));
     } else {
-      console.log('[OCR] No text extracted from canvas');
+      console.warn('[OCR] No text extracted from canvas - image might be blank or unreadable');
     }
     
     return extractedText;
   } catch (error) {
-    // Canvas OCR failed
+    console.error('[OCR] Canvas OCR failed:', error);
     // Don't throw error, return empty string to continue processing
     return '';
   }

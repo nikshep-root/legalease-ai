@@ -5,7 +5,6 @@ import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Camera, X, Check, Plus, Upload, RotateCw } from 'lucide-react';
 import { useRouter } from 'next/navigation';
-import { extractTextFromCanvas } from '@/lib/ocr-processor';
 
 interface CapturedImage {
   id: string;
@@ -148,70 +147,79 @@ export default function MobileCameraScanner({ onComplete, onCancel }: MobileCame
     stopCamera();
 
     try {
-      // Process all images with OCR
-      let combinedText = '';
-      
-      for (let i = 0; i < capturedImages.length; i++) {
-        const image = capturedImages[i];
+      // For single image, use Gemini Vision API directly
+      if (capturedImages.length === 1) {
+        setError('Analyzing image with AI...');
         
-        // Create a temporary canvas to extract text from image
-        const tempCanvas = document.createElement('canvas');
-        const tempImg = new Image();
-        
-        // Wait for image to load
-        await new Promise((resolve, reject) => {
-          tempImg.onload = resolve;
-          tempImg.onerror = reject;
-          tempImg.src = image.dataUrl;
+        const formData = new FormData();
+        formData.append('file', capturedImages[0].file);
+
+        const response = await fetch('/api/analyze-image', {
+          method: 'POST',
+          body: formData,
         });
-        
-        // Set canvas size and draw image
-        tempCanvas.width = tempImg.width;
-        tempCanvas.height = tempImg.height;
-        const ctx = tempCanvas.getContext('2d');
-        if (!ctx) throw new Error('Canvas context not available');
-        
-        ctx.drawImage(tempImg, 0, 0);
-        
-        // Extract text using OCR
-        const pageText = await extractTextFromCanvas(tempCanvas);
-        
-        if (capturedImages.length > 1) {
-          combinedText += `\n\n=== Page ${i + 1} ===\n\n${pageText}`;
-        } else {
-          combinedText = pageText;
+
+        if (!response.ok) {
+          throw new Error('Image analysis failed');
         }
-      }
 
-      if (!combinedText || combinedText.trim().length === 0) {
-        throw new Error('No text could be extracted from the images. Please ensure the document is clear and well-lit.');
-      }
+        const result = await response.json();
+        
+        setError(null);
 
-      // Send extracted text to analyze API
-      const response = await fetch('/api/analyze', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          text: combinedText,
-          fileName: `scanned-document-${Date.now()}.jpg`,
-        }),
-      });
-
-      if (!response.ok) {
-        throw new Error('Analysis failed');
-      }
-
-      const result = await response.json();
-
-      // Navigate to results page
-      if (result.documentId) {
-        router.push(`/results/${result.documentId}`);
+        // Navigate to results page
+        if (result.analysis) {
+          const analysisId = `analysis_scan_${Date.now()}`;
+          localStorage.setItem(analysisId, JSON.stringify(result.analysis));
+          router.push(`/results/${analysisId}`);
+        }
       } else {
-        // Fallback: store result in localStorage and navigate
+        // For multiple images, process each and combine results
+        setError(`Analyzing ${capturedImages.length} pages...`);
+        
+        const analyses = [];
+        
+        for (let i = 0; i < capturedImages.length; i++) {
+          setError(`Analyzing page ${i + 1} of ${capturedImages.length}...`);
+          
+          const formData = new FormData();
+          formData.append('file', capturedImages[i].file);
+
+          const response = await fetch('/api/analyze-image', {
+            method: 'POST',
+            body: formData,
+          });
+
+          if (response.ok) {
+            const result = await response.json();
+            analyses.push({
+              page: i + 1,
+              text: result.extractedText || '',
+              analysis: result.analysis,
+            });
+          }
+        }
+
+        if (analyses.length === 0) {
+          throw new Error('Failed to analyze any pages');
+        }
+
+        // Combine analyses
+        const combinedAnalysis = {
+          summary: analyses.map((a, i) => `Page ${a.page}: ${a.analysis?.summary || 'No summary'}`).join('\n\n'),
+          documentType: analyses[0]?.analysis?.documentType || 'Multi-page Document',
+          keyPoints: analyses.flatMap(a => a.analysis?.keyPoints || []),
+          risks: analyses.flatMap(a => a.analysis?.risks || []),
+          obligations: analyses.flatMap(a => a.analysis?.obligations || []),
+          importantClauses: analyses.flatMap(a => a.analysis?.importantClauses || []),
+          deadlines: analyses.flatMap(a => a.analysis?.deadlines || []),
+          extractedText: analyses.map(a => `=== Page ${a.page} ===\n\n${a.text}`).join('\n\n'),
+        };
+
+        setError(null);
+
         const analysisId = `analysis_scan_${Date.now()}`;
-        localStorage.setItem(analysisId, JSON.stringify(result.analysis));
+        localStorage.setItem(analysisId, JSON.stringify(combinedAnalysis));
         router.push(`/results/${analysisId}`);
       }
 
