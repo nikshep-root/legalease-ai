@@ -261,7 +261,7 @@ export default function UploadPage() {
                   <input
                     type="file"
                     multiple
-                    accept=".pdf,.txt"
+                    accept=".pdf,.txt,.doc,.docx,.rtf,.odt,.pages,.tex,.wpd,.wps,.csv,.xls,.xlsx,.ppt,.pptx"
                     onChange={handleFileInput}
                     className="hidden"
                     id="file-input"
@@ -271,7 +271,7 @@ export default function UploadPage() {
                       Choose Files
                     </label>
                   </Button>
-                  <p className="text-sm text-muted-foreground mt-4">Supports PDF and TXT files up to 10MB each</p>
+                  <p className="text-sm text-muted-foreground mt-4">Supports PDF, Word, Excel, PowerPoint, RTF, and text files up to 10MB each</p>
                 </div>
               </CardContent>
             </Card>
@@ -336,8 +336,10 @@ export default function UploadPage() {
             </CardHeader>
             <CardContent>
               <ul className="space-y-2 text-sm text-muted-foreground">
-                <li>• PDF documents</li>
-                <li>• Plain text files (.txt)</li>
+                <li>• PDF documents (.pdf)</li>
+                <li>• Word documents (.doc, .docx)</li>
+                <li>• Text files (.txt, .rtf)</li>
+                <li>• Excel & PowerPoint files</li>
                 <li>• Maximum 10MB per file</li>
               </ul>
             </CardContent>
