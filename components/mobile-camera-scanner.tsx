@@ -388,31 +388,32 @@ export default function MobileCameraScanner({ onComplete, onCancel }: MobileCame
           {!isCameraActive && capturedImages.length === 0 && (
             <div className="flex flex-col sm:flex-row gap-3">
               <Button
-                onClick={startCamera}
+                onClick={() => fileInputRef.current?.click()}
                 className="flex-1"
                 size="lg"
               >
                 <Camera className="mr-2 h-5 w-5" />
-                Start Camera
+                Take Photo
               </Button>
               <Button
-                onClick={() => fileInputRef.current?.click()}
+                onClick={startCamera}
                 variant="outline"
                 className="flex-1"
                 size="lg"
               >
                 <Upload className="mr-2 h-5 w-5" />
-                Upload Images
+                Scan Document
               </Button>
             </div>
           )}
 
-          {/* Hidden file input */}
+          {/* Hidden file input - triggers native camera */}
           <input
             ref={fileInputRef}
             type="file"
             accept="image/*"
             multiple
+            capture="environment"
             onChange={handleFileInput}
             className="hidden"
           />
