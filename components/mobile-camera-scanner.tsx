@@ -35,8 +35,15 @@ export default function MobileCameraScanner({ onComplete, onCancel }: MobileCame
   // Start camera
   const startCamera = async () => {
     try {
+      console.log('[Camera] Starting camera with facing mode:', facingMode);
       setError(null);
       setIsVideoReady(false);
+      
+      // Check if getUserMedia is supported
+      if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+        throw new Error('Camera not supported on this browser');
+      }
+      
       const mediaStream = await navigator.mediaDevices.getUserMedia({
         video: {
           facingMode: facingMode,
@@ -45,39 +52,62 @@ export default function MobileCameraScanner({ onComplete, onCancel }: MobileCame
         },
       });
       
+      console.log('[Camera] Media stream obtained:', mediaStream.active);
+      
       if (videoRef.current) {
         videoRef.current.srcObject = mediaStream;
         
         // Wait for video to be ready
-        videoRef.current.onloadedmetadata = () => {
-          console.log('Video metadata loaded');
-          videoRef.current?.play();
+        videoRef.current.onloadedmetadata = async () => {
+          console.log('[Camera] Video metadata loaded, dimensions:', 
+            videoRef.current?.videoWidth, 'x', videoRef.current?.videoHeight);
+          try {
+            await videoRef.current?.play();
+            console.log('[Camera] Video playing');
+          } catch (playErr) {
+            console.error('[Camera] Play error:', playErr);
+          }
         };
         
         videoRef.current.oncanplay = () => {
-          console.log('Video can play');
+          console.log('[Camera] Video can play - ready!');
           setIsVideoReady(true);
         };
+        
+        videoRef.current.onerror = (e) => {
+          console.error('[Camera] Video element error:', e);
+        };
+      } else {
+        console.error('[Camera] Video ref not available');
       }
       
       setStream(mediaStream);
       setIsCameraActive(true);
+      console.log('[Camera] Camera activated');
     } catch (err) {
-      console.error('Camera access error:', err);
-      setError('Camera access denied. Please allow camera permissions or use file upload.');
+      console.error('[Camera] Camera access error:', err);
+      setError(`Camera access denied: ${err instanceof Error ? err.message : 'Unknown error'}. Please allow camera permissions.`);
     }
   };
 
   // Stop camera
   const stopCamera = () => {
+    console.log('[Camera] Stopping camera');
     if (stream) {
-      stream.getTracks().forEach(track => track.stop());
+      stream.getTracks().forEach(track => {
+        track.stop();
+        console.log('[Camera] Stopped track:', track.kind);
+      });
       setStream(null);
     }
     if (videoRef.current) {
       videoRef.current.srcObject = null;
+      videoRef.current.onloadedmetadata = null;
+      videoRef.current.oncanplay = null;
+      videoRef.current.onerror = null;
     }
     setIsCameraActive(false);
+    setIsVideoReady(false);
   };
 
   // Toggle camera (front/back)
@@ -371,6 +401,16 @@ export default function MobileCameraScanner({ onComplete, onCancel }: MobileCame
                   muted
                   className="w-full h-full object-cover"
                 />
+                
+                {/* Loading indicator while video initializes */}
+                {!isVideoReady && (
+                  <div className="absolute inset-0 flex items-center justify-center bg-black/50">
+                    <div className="text-white text-center space-y-2">
+                      <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-white mx-auto"></div>
+                      <p>Initializing camera...</p>
+                    </div>
+                  </div>
+                )}
                 
                 {/* Camera overlay guide */}
                 <div className="absolute inset-0 pointer-events-none">
