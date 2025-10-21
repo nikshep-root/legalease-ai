@@ -5,10 +5,11 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { Heart, MessageCircle, Eye, Share2, Bookmark, Calendar, Clock } from 'lucide-react';
+import { Heart, MessageCircle, Eye, Bookmark, Calendar, Clock } from 'lucide-react';
 import ReactMarkdown from 'react-markdown';
 import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
 import { vscDarkPlus } from 'react-syntax-highlighter/dist/esm/styles/prism';
+import { ShareButtons } from '@/components/share-buttons';
 import type { BlogPost } from '@/lib/blog-service';
 import Link from 'next/link';
 
@@ -36,23 +37,6 @@ export function BlogPostViewer({ post, onLike, isLiked = false, showComments = t
       console.error('Error liking post:', error);
     } finally {
       setIsLiking(false);
-    }
-  };
-
-  const handleShare = async () => {
-    if (navigator.share) {
-      try {
-        await navigator.share({
-          title: post.title,
-          text: post.excerpt,
-          url: window.location.href,
-        });
-      } catch (error) {
-        // User cancelled
-      }
-    } else {
-      navigator.clipboard.writeText(window.location.href);
-      alert('Link copied to clipboard!');
     }
   };
 
@@ -183,10 +167,11 @@ export function BlogPostViewer({ post, onLike, isLiked = false, showComments = t
               <Heart className={`w-4 h-4 mr-2 ${liked ? 'fill-current' : ''}`} />
               {liked ? 'Liked' : 'Like'} ({likeCount})
             </Button>
-            <Button variant="outline" size="sm" onClick={handleShare}>
-              <Share2 className="w-4 h-4 mr-2" />
-              Share
-            </Button>
+            <ShareButtons 
+              url={typeof window !== 'undefined' ? window.location.href : ''}
+              title={post.title}
+              description={post.excerpt}
+            />
             <Button variant="outline" size="sm">
               <Bookmark className="w-4 h-4 mr-2" />
               Save

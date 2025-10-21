@@ -15,7 +15,7 @@ export default function BlogPage() {
   const { data: session } = useSession();
   const [posts, setPosts] = useState<BlogPost[]>([]);
   const [categories, setCategories] = useState<Category[]>([]);
-  const [selectedCategory, setSelectedCategory] = useState<string>('');
+  const [selectedCategory, setSelectedCategory] = useState<string>('all');
   const [searchQuery, setSearchQuery] = useState('');
   const [sortBy, setSortBy] = useState<'publishedAt' | 'likes' | 'views'>('publishedAt');
   const [isLoading, setIsLoading] = useState(true);
@@ -29,7 +29,7 @@ export default function BlogPage() {
     try {
       const [postsData, categoriesData] = await Promise.all([
         getBlogPosts({
-          category: selectedCategory || undefined,
+          category: selectedCategory !== 'all' ? selectedCategory : undefined,
           orderBy: sortBy,
           limit: 20,
         }),
@@ -112,7 +112,7 @@ export default function BlogPage() {
               <SelectValue placeholder="All Categories" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="">All Categories</SelectItem>
+              <SelectItem value="all">All Categories</SelectItem>
               {categories.map((cat) => (
                 <SelectItem key={cat.id} value={cat.name}>
                   {cat.name} ({cat.postCount})

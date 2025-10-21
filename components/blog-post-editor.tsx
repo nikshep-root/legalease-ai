@@ -53,6 +53,8 @@ export function BlogPostEditor({ initialData, onSave, onCancel }: BlogPostEditor
   const [tags, setTags] = useState<string[]>(initialData?.tags || []);
   const [tagInput, setTagInput] = useState('');
   const [coverImage, setCoverImage] = useState(initialData?.coverImage || '');
+  const [imageError, setImageError] = useState(false);
+  const [imageLoading, setImageLoading] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [activeTab, setActiveTab] = useState<'write' | 'preview'>('write');
 
@@ -144,20 +146,52 @@ export function BlogPostEditor({ initialData, onSave, onCancel }: BlogPostEditor
             <div className="flex gap-2">
               <Input
                 value={coverImage}
-                onChange={(e) => setCoverImage(e.target.value)}
+                onChange={(e) => {
+                  setCoverImage(e.target.value);
+                  setImageError(false);
+                  setImageLoading(true);
+                }}
                 placeholder="https://example.com/image.jpg"
               />
-              <Button variant="outline" size="icon">
+              <Button 
+                variant="outline" 
+                size="icon"
+                type="button"
+                onClick={() => {
+                  const input = prompt('Enter image URL:');
+                  if (input) {
+                    setCoverImage(input);
+                    setImageError(false);
+                    setImageLoading(true);
+                  }
+                }}
+              >
                 <ImageIcon className="w-4 h-4" />
               </Button>
             </div>
-            {coverImage && (
-              <img
-                src={coverImage}
-                alt="Cover preview"
-                className="mt-2 rounded-lg max-h-48 object-cover"
-                onError={() => setCoverImage('')}
-              />
+            {coverImage && !imageError && (
+              <div className="mt-2 relative">
+                {imageLoading && (
+                  <div className="absolute inset-0 flex items-center justify-center bg-muted rounded-lg">
+                    <p className="text-sm text-muted-foreground">Loading image...</p>
+                  </div>
+                )}
+                <img
+                  src={coverImage}
+                  alt="Cover preview"
+                  className="rounded-lg max-h-48 w-full object-cover"
+                  onLoad={() => setImageLoading(false)}
+                  onError={() => {
+                    setImageError(true);
+                    setImageLoading(false);
+                  }}
+                />
+              </div>
+            )}
+            {imageError && (
+              <div className="mt-2 p-4 bg-destructive/10 text-destructive rounded-lg text-sm">
+                ⚠️ Failed to load image. Please check the URL and try again.
+              </div>
             )}
           </div>
 

@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { useParams, useRouter } from 'next/navigation';
+import Head from 'next/head';
 import { BlogPostViewer } from '@/components/blog-post-viewer';
 import { CommentSection } from '@/components/comment-section';
 import { Button } from '@/components/ui/button';
@@ -90,7 +91,88 @@ export default function BlogPostPage() {
 
   const canEdit = session?.user?.id === post.authorId;
 
+  // SEO: Generate JSON-LD structured data
+  const jsonLd = {
+    "@context": "https://schema.org",
+    "@type": "BlogPosting",
+    "headline": post.title,
+    "image": post.coverImage || "https://legalease.ai/og-image.png",
+    "datePublished": post.publishedAt?.toISOString() || post.createdAt.toISOString(),
+    "dateModified": post.updatedAt.toISOString(),
+    "author": {
+      "@type": "Person",
+      "name": post.authorName,
+      "url": `https://legalease.ai/blog/author/${post.authorId}`
+    },
+    "publisher": {
+      "@type": "Organization",
+      "name": "LegalEase AI",
+      "logo": {
+        "@type": "ImageObject",
+        "url": "https://legalease.ai/logo.png"
+      }
+    },
+    "description": post.excerpt,
+    "articleBody": post.content,
+    "keywords": post.tags.join(", "),
+    "wordCount": post.content.split(' ').length,
+    "commentCount": post.commentsCount,
+    "interactionStatistic": [
+      {
+        "@type": "InteractionCounter",
+        "interactionType": "https://schema.org/LikeAction",
+        "userInteractionCount": post.likes
+      },
+      {
+        "@type": "InteractionCounter",
+        "interactionType": "https://schema.org/CommentAction",
+        "userInteractionCount": post.commentsCount
+      }
+    ]
+  };
+
+  const pageUrl = typeof window !== 'undefined' ? window.location.href : `https://legalease.ai/blog/${post.slug}`;
+
   return (
+    <>
+      {/* SEO Meta Tags */}
+      <Head>
+        <title>{post.title} | LegalEase AI Blog</title>
+        <meta name="description" content={post.excerpt} />
+        <meta name="keywords" content={post.tags.join(', ')} />
+        <meta name="author" content={post.authorName} />
+        
+        {/* Open Graph */}
+        <meta property="og:type" content="article" />
+        <meta property="og:title" content={post.title} />
+        <meta property="og:description" content={post.excerpt} />
+        <meta property="og:image" content={post.coverImage || "https://legalease.ai/og-image.png"} />
+        <meta property="og:url" content={pageUrl} />
+        <meta property="og:site_name" content="LegalEase AI" />
+        <meta property="article:published_time" content={post.publishedAt?.toISOString() || post.createdAt.toISOString()} />
+        <meta property="article:modified_time" content={post.updatedAt.toISOString()} />
+        <meta property="article:author" content={post.authorName} />
+        <meta property="article:section" content={post.category} />
+        {post.tags.map(tag => (
+          <meta key={tag} property="article:tag" content={tag} />
+        ))}
+        
+        {/* Twitter Card */}
+        <meta name="twitter:card" content="summary_large_image" />
+        <meta name="twitter:title" content={post.title} />
+        <meta name="twitter:description" content={post.excerpt} />
+        <meta name="twitter:image" content={post.coverImage || "https://legalease.ai/og-image.png"} />
+        
+        {/* Canonical URL */}
+        <link rel="canonical" href={pageUrl} />
+        
+        {/* JSON-LD Structured Data */}
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+        />
+      </Head>
+
     <div className="container mx-auto px-4 py-8">
       {/* Back Button */}
       <div className="mb-6 flex items-center justify-between">
@@ -122,5 +204,6 @@ export default function BlogPostPage() {
         <CommentSection postId={post.id} initialCommentsCount={post.commentsCount} />
       </div>
     </div>
+    </>
   );
 }

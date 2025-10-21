@@ -1,0 +1,120 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+    
+    // Helper function to check if user is authenticated
+    function isSignedIn() {
+      return request.auth != null;
+    }
+    
+    // Helper function to check if user is the owner
+    function isOwner(userId) {
+      return isSignedIn() && request.auth.uid == userId;
+    }
+    
+    // Helper function to check if user is admin (you can add admin UIDs here)
+    function isAdmin() {
+      return isSignedIn() && request.auth.uid in [
+        // Add admin user IDs here when you have them
+        // 'admin-user-id-1',
+        // 'admin-user-id-2'
+      ];
+    }
+    
+    // Blog Posts Collection
+    match /blog-posts/{postId} {
+      
+      // Allow reading published posts to everyone
+      // Allow reading own drafts to the author
+      allow read: if resource.data.status == 'published' || 
+                     (isSignedIn() && resource.data.authorId == request.auth.uid);
+      
+      // Allow authenticated users to create posts
+      // Ensure authorId matches the authenticated user
+      allow create: if isSignedIn() && 
+                       request.resource.data.authorId == request.auth.uid &&
+                       request.resource.data.status in ['draft', 'published'] &&
+                       request.resource.data.keys().hasAll(['title', 'content', 'category', 'authorId']);
+      
+      // Allow authors to update their own posts
+      // Prevent changing authorId
+      allow update: if isSignedIn() && 
+                       resource.data.authorId == request.auth.uid &&
+                       request.resource.data.authorId == resource.data.authorId;
+      
+      // Allow authors to delete their own posts
+      allow delete: if isSignedIn() && 
+                       resource.data.authorId == request.auth.uid;
+      
+      // Comments Subcollection
+      match /comments/{commentId} {
+        // Anyone can read comments on published posts
+        allow read: if true;
+        
+        // Authenticated users can create comments
+        // Ensure userId matches authenticated user
+        allow create: if isSignedIn() && 
+                         request.resource.data.userId == request.auth.uid &&
+                         request.resource.data.keys().hasAll(['content', 'userId', 'userName']);
+        
+        // Users can update their own comments
+        allow update: if isSignedIn() && 
+                         resource.data.userId == request.auth.uid;
+        
+        // Users can delete their own comments
+        // Post authors can delete any comment on their posts
+        allow delete: if isSignedIn() && 
+                         (resource.data.userId == request.auth.uid ||
+                          get(/databases/$(database)/documents/blog-posts/$(postId)).data.authorId == request.auth.uid);
+      }
+      
+      // Likes Subcollection
+      match /likes/{userId} {
+        // Anyone can read likes
+        allow read: if true;
+        
+        // Users can only create/delete their own likes
+        // userId in the document path must match authenticated user
+        allow create, delete: if isSignedIn() && 
+                                 request.auth.uid == userId;
+      }
+    }
+    
+    // User Profiles Collection
+    match /users/{userId} {
+      // Anyone can read user profiles (for author info)
+      allow read: if true;
+      
+      // Users can create their own profile
+      allow create: if isSignedIn() && 
+                       request.auth.uid == userId &&
+                       request.resource.data.keys().hasAll(['displayName', 'email']);
+      
+      // Users can update their own profile
+      allow update: if isSignedIn() && 
+                       request.auth.uid == userId;
+      
+      // Users can delete their own profile
+      allow delete: if isSignedIn() && 
+                       request.auth.uid == userId;
+    }
+    
+    // Categories Collection (read-only for users, write for admins)
+    match /categories/{categoryId} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+    
+    // Analytics/Tracking (if you add it later)
+    match /analytics/{document=**} {
+      allow read: if isAdmin();
+      allow write: if isSignedIn();
+    }
+    
+    // Default deny all other collections
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}
