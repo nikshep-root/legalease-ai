@@ -117,14 +117,40 @@ export async function createBlogPost(data: {
     publishedAt: data.status === 'published' ? serverTimestamp() : null,
   });
 
-  // Update user post count
-  const userRef = doc(db, 'users', data.authorId);
-  await updateDoc(userRef, {
-    postsCount: increment(1),
-  });
+  // Update user post count (create user doc if doesn't exist)
+  try {
+    const userRef = doc(db, 'users', data.authorId);
+    const userSnap = await getDoc(userRef);
+    
+    if (userSnap.exists()) {
+      await updateDoc(userRef, {
+        postsCount: increment(1),
+      });
+    } else {
+      // Create user document if it doesn't exist
+      await setDoc(userRef, {
+        id: data.authorId,
+        displayName: data.authorName,
+        email: '',
+        photoURL: data.authorPhoto,
+        bio: '',
+        reputation: 0,
+        postsCount: 1,
+        createdAt: serverTimestamp(),
+      });
+    }
+  } catch (error) {
+    console.error('Error updating user post count:', error);
+    // Don't fail the whole operation if user count update fails
+  }
 
   // Update category count
-  await updateCategoryCount(data.category, 1);
+  try {
+    await updateCategoryCount(data.category, 1);
+  } catch (error) {
+    console.error('Error updating category count:', error);
+    // Don't fail the whole operation if category count update fails
+  }
 
   return docRef.id;
 }
