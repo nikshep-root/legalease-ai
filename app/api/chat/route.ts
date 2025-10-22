@@ -1,5 +1,7 @@
 import { type NextRequest, NextResponse } from "next/server"
-import { geminiAnalyzer } from "@/lib/gemini-analyzer"
+import { GoogleGenerativeAI } from "@google/generative-ai"
+
+const genAI = new GoogleGenerativeAI(process.env.GOOGLE_AI_API_KEY || '')
 
 export async function POST(request: NextRequest) {
   try {
@@ -23,7 +25,7 @@ export async function POST(request: NextRequest) {
       response = generateFallbackResponse(lastMessage, documentAnalysis)
     }
 
-    return NextResponse.json({ content: response })
+    return NextResponse.json({ response })
   } catch (error) {
     console.error("Chat API error:", error)
     return NextResponse.json({ error: "Failed to process chat request" }, { status: 500 })
@@ -37,10 +39,14 @@ async function generateGeminiResponse(
   messages: any[]
 ): Promise<string> {
   const conversationHistory = messages.slice(-5).map(msg => 
-    `${msg.role}: ${msg.content}`
-  ).join('\n')
+    `${msg.role === 'user' ? 'User' : 'Assistant'}: ${msg.content}`
+  ).join('\n\n')
 
-  const prompt = `You are a legal document assistant helping users understand their document. You have access to both the full document text and a detailed analysis.
+  let prompt = ''
+  
+  // If we have document context, use it
+  if (documentAnalysis || documentText) {
+    prompt = `You are a legal document assistant helping users understand their document. You have access to both the full document text and a detailed analysis.
 
 DOCUMENT ANALYSIS:
 - Document Type: ${documentAnalysis?.documentType || 'Legal Document'}
@@ -51,16 +57,30 @@ DOCUMENT ANALYSIS:
 - Important Clauses: ${documentAnalysis?.importantClauses?.map((c: any) => `${c.title}: ${c.content}`).join('; ') || 'Not available'}
 - Deadlines: ${documentAnalysis?.deadlines?.map((d: any) => `${d.description}: ${d.date || 'TBD'}`).join('; ') || 'Not available'}
 
+${documentText ? `DOCUMENT TEXT (excerpt):\n${documentText.substring(0, 2000)}` : ''}
+
 RECENT CONVERSATION:
 ${conversationHistory}
 
 CURRENT QUESTION: ${question}
 
-Please provide a helpful, accurate response based on the document analysis and text. If you reference specific information, cite where it comes from (analysis vs document text). Keep responses concise but informative. If you cannot answer based on the available information, say so clearly.
+Please provide a helpful, accurate response based on the document analysis and text. If you reference specific information, cite where it comes from (analysis vs document text). Keep responses concise but informative.`
+  } else {
+    // General legal assistant mode
+    prompt = `You are an expert AI Legal Assistant helping users understand legal concepts, contract terms, and legal procedures. You provide clear, accurate, and helpful information.
 
-Response:`
+RECENT CONVERSATION:
+${conversationHistory}
 
-  return await geminiAnalyzer.generateChatResponse(prompt)
+USER QUESTION: ${question}
+
+Please provide a clear, professional, and helpful response. Use simple language when possible, provide examples if relevant, and structure your response with bullet points or sections when appropriate. Keep responses concise but comprehensive.`
+  }
+
+  const model = genAI.getGenerativeModel({ model: "gemini-2.0-flash-exp" })
+  const result = await model.generateContent(prompt)
+  const response = result.response
+  return response.text()
 }
 
 function generateFallbackResponse(question: string, documentAnalysis: any): string {
