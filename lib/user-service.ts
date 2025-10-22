@@ -129,10 +129,34 @@ export async function updateUserProfile(
   try {
     const userRef = doc(db, 'users', userId);
     
-    await updateDoc(userRef, {
-      ...data,
-      updatedAt: serverTimestamp(),
-    });
+    // Check if profile exists
+    const userSnap = await getDoc(userRef);
+    
+    if (!userSnap.exists()) {
+      // Profile doesn't exist, create it with the provided data
+      await setDoc(userRef, {
+        displayName: data.displayName || 'User',
+        email: '', // Will be filled by auth
+        photoURL: data.photoURL || '',
+        bio: data.bio || '',
+        website: data.website || '',
+        twitter: data.twitter || '',
+        linkedin: data.linkedin || '',
+        github: data.github || '',
+        postsCount: 0,
+        totalLikes: 0,
+        totalViews: 0,
+        reputation: 0,
+        joinedAt: serverTimestamp(),
+        updatedAt: serverTimestamp(),
+      });
+    } else {
+      // Profile exists, update it
+      await updateDoc(userRef, {
+        ...data,
+        updatedAt: serverTimestamp(),
+      });
+    }
   } catch (error) {
     console.error('Error updating user profile:', error);
     throw error;

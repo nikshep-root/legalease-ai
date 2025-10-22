@@ -69,7 +69,22 @@ export default function ProfilePage() {
     setError(null);
 
     try {
-      const userProfile = await getUserProfile(session.user.id);
+      let userProfile = await getUserProfile(session.user.id);
+
+      // If profile doesn't exist, create it automatically
+      if (!userProfile) {
+        const initialData = {
+          displayName: session.user.name || session.user.email?.split('@')[0] || 'User',
+          bio: '',
+          website: '',
+          twitter: '',
+          linkedin: '',
+          github: '',
+        };
+        
+        await updateUserProfile(session.user.id, initialData);
+        userProfile = await getUserProfile(session.user.id);
+      }
 
       if (userProfile) {
         setProfile(userProfile);
@@ -84,7 +99,7 @@ export default function ProfilePage() {
       }
     } catch (err) {
       console.error('Error loading profile:', err);
-      setError('Failed to load profile');
+      setError('Failed to load profile. Please try refreshing the page.');
     } finally {
       setIsLoading(false);
     }
