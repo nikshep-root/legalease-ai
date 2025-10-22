@@ -85,71 +85,107 @@ export function MobileSidebar({ isOpen, onClose }: MobileSidebarProps) {
         )}
 
         {/* Navigation Links */}
-        <div className="flex-1 py-4">
+        <div className="flex-1 py-4 overflow-y-auto">
           {session ? (
             <nav className="space-y-1 px-4">
-              <Link 
-                href="/upload" 
-                className="flex items-center space-x-3 p-3 rounded-lg text-gray-700 hover:bg-gray-100 transition-colors"
-                onClick={handleLinkClick}
-              >
-                <Upload className="w-5 h-5" />
-                <span>Upload Document</span>
-              </Link>
-              
-              <Link 
-                href="/history" 
-                className="flex items-center space-x-3 p-3 rounded-lg text-gray-700 hover:bg-gray-100 transition-colors"
-                onClick={handleLinkClick}
-              >
-                <Clock className="w-5 h-5" />
-                <span>Analysis History</span>
-              </Link>
-              
-              <Link 
-                href="/analytics" 
-                className="flex items-center space-x-3 p-3 rounded-lg text-gray-700 hover:bg-gray-100 transition-colors"
-                onClick={handleLinkClick}
-              >
-                <TrendingUp className="w-5 h-5" />
-                <span>Risk Analytics</span>
-              </Link>
-              
-              <Link 
-                href="/documents" 
-                className="flex items-center space-x-3 p-3 rounded-lg text-gray-700 hover:bg-gray-100 transition-colors"
-                onClick={handleLinkClick}
-              >
-                <FileText className="w-5 h-5" />
-                <span>My Documents</span>
-              </Link>
-              
-              <Link 
-                href="/compare" 
-                className="flex items-center space-x-3 p-3 rounded-lg text-gray-700 hover:bg-gray-100 transition-colors"
-                onClick={handleLinkClick}
-              >
-                <ArrowRightLeft className="w-5 h-5" />
-                <span>Compare Documents</span>
-              </Link>
-              
-              <Link 
-                href="/templates" 
-                className="flex items-center space-x-3 p-3 rounded-lg text-gray-700 hover:bg-gray-100 transition-colors"
-                onClick={handleLinkClick}
-              >
-                <FileCheck className="w-5 h-5" />
-                <span>Templates</span>
-              </Link>
-              
-              <Link 
-                href="/dashboard" 
-                className="flex items-center space-x-3 p-3 rounded-lg text-gray-700 hover:bg-gray-100 transition-colors"
-                onClick={handleLinkClick}
-              >
-                <BarChart3 className="w-5 h-5" />
-                <span>Dashboard</span>
-              </Link>
+              {/* Main Actions */}
+              <div className="mb-6">
+                <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-3 px-3">
+                  Main
+                </p>
+                <Link 
+                  href="/upload" 
+                  className="flex items-center space-x-3 p-3 rounded-lg text-gray-700 hover:bg-blue-50 hover:text-blue-600 transition-colors"
+                  onClick={handleLinkClick}
+                >
+                  <Upload className="w-5 h-5" />
+                  <span>Upload Document</span>
+                </Link>
+                
+                <Link 
+                  href="/templates" 
+                  className="flex items-center space-x-3 p-3 rounded-lg text-gray-700 hover:bg-blue-50 hover:text-blue-600 transition-colors"
+                  onClick={handleLinkClick}
+                >
+                  <FileCheck className="w-5 h-5" />
+                  <span>Templates</span>
+                </Link>
+                
+                <Link 
+                  href="/documents" 
+                  className="flex items-center space-x-3 p-3 rounded-lg text-gray-700 hover:bg-blue-50 hover:text-blue-600 transition-colors"
+                  onClick={handleLinkClick}
+                >
+                  <FileText className="w-5 h-5" />
+                  <span>My Documents</span>
+                </Link>
+              </div>
+
+              {/* Tools */}
+              <div className="mb-6">
+                <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-3 px-3">
+                  Tools
+                </p>
+                <Link 
+                  href="/compare" 
+                  className="flex items-center space-x-3 p-3 rounded-lg text-gray-700 hover:bg-blue-50 hover:text-blue-600 transition-colors"
+                  onClick={handleLinkClick}
+                >
+                  <ArrowRightLeft className="w-5 h-5" />
+                  <span>Compare</span>
+                </Link>
+                
+                <Link 
+                  href="/analytics" 
+                  className="flex items-center space-x-3 p-3 rounded-lg text-gray-700 hover:bg-blue-50 hover:text-blue-600 transition-colors"
+                  onClick={handleLinkClick}
+                >
+                  <TrendingUp className="w-5 h-5" />
+                  <span>Analytics</span>
+                </Link>
+                
+                <Link 
+                  href="/history" 
+                  className="flex items-center space-x-3 p-3 rounded-lg text-gray-700 hover:bg-blue-50 hover:text-blue-600 transition-colors"
+                  onClick={handleLinkClick}
+                >
+                  <Clock className="w-5 h-5" />
+                  <span>History</span>
+                </Link>
+              </div>
+
+              {/* More */}
+              <div>
+                <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-3 px-3">
+                  More
+                </p>
+                <Link 
+                  href="/blog" 
+                  className="flex items-center space-x-3 p-3 rounded-lg text-gray-700 hover:bg-blue-50 hover:text-blue-600 transition-colors"
+                  onClick={handleLinkClick}
+                >
+                  <FileText className="w-5 h-5" />
+                  <span>Blog</span>
+                </Link>
+                
+                <Link 
+                  href="/dashboard" 
+                  className="flex items-center space-x-3 p-3 rounded-lg text-gray-700 hover:bg-blue-50 hover:text-blue-600 transition-colors"
+                  onClick={handleLinkClick}
+                >
+                  <BarChart3 className="w-5 h-5" />
+                  <span>Dashboard</span>
+                </Link>
+                
+                <Link 
+                  href="/profile" 
+                  className="flex items-center space-x-3 p-3 rounded-lg text-gray-700 hover:bg-blue-50 hover:text-blue-600 transition-colors"
+                  onClick={handleLinkClick}
+                >
+                  <User className="w-5 h-5" />
+                  <span>Profile</span>
+                </Link>
+              </div>
             </nav>
           ) : (
             <div className="px-4 space-y-3">

@@ -59,62 +59,51 @@ export function NavigationBar() {
             </div>
 
             {/* Desktop Navigation Links */}
-            <div className="hidden md:flex items-center space-x-8">
+            <div className="hidden md:flex items-center space-x-6">
               {session && (
                 <>
-                  <Link href="/upload" className="text-gray-600 hover:text-gray-900 transition-colors">
-                    Upload Document
+                  <Link href="/upload" className="text-sm font-medium text-gray-700 hover:text-blue-600 transition-colors">
+                    Upload
                   </Link>
-                  <Link href="/history" className="text-gray-600 hover:text-gray-900 transition-colors">
-                    History
-                  </Link>
-                  <Link href="/analytics" className="text-gray-600 hover:text-gray-900 transition-colors">
-                    Analytics
-                  </Link>
-                  <Link href="/documents" className="text-gray-600 hover:text-gray-900 transition-colors">
-                    Documents
-                  </Link>
-                  <Link href="/compare" className="text-gray-600 hover:text-gray-900 transition-colors">
-                    Compare
-                  </Link>
-                  <Link href="/blog" className="text-gray-600 hover:text-gray-900 transition-colors">
-                    Blog
-                  </Link>
-                  <Link href="/templates" className="text-gray-600 hover:text-gray-900 transition-colors">
+                  <Link href="/templates" className="text-sm font-medium text-gray-700 hover:text-blue-600 transition-colors">
                     Templates
                   </Link>
-                  <Link href="/dashboard" className="text-gray-600 hover:text-gray-900 transition-colors">
-                    Dashboard
+                  <Link href="/documents" className="text-sm font-medium text-gray-700 hover:text-blue-600 transition-colors">
+                    Documents
+                  </Link>
+                  <Link href="/analytics" className="text-sm font-medium text-gray-700 hover:text-blue-600 transition-colors">
+                    Analytics
+                  </Link>
+                  <Link href="/blog" className="text-sm font-medium text-gray-700 hover:text-blue-600 transition-colors">
+                    Blog
                   </Link>
                 </>
               )}
             </div>
 
             {/* Desktop User Menu */}
-            <div className="hidden md:flex items-center space-x-4">
+            <div className="hidden md:flex items-center space-x-3">
               <ThemeToggle />
               {session ? (
-                <div className="flex items-center space-x-3">
-                  <div className="flex items-center space-x-2">
-                    <User className="w-5 h-5 text-gray-500" />
-                    <span className="text-sm text-gray-700">
-                      Hello, {session.user?.name || session.user?.email}
-                    </span>
-                  </div>
+                <>
+                  <Link href="/profile">
+                    <Button variant="ghost" size="sm" className="flex items-center space-x-2">
+                      <User className="w-4 h-4" />
+                      <span className="max-w-[120px] truncate">{session.user?.name || 'Profile'}</span>
+                    </Button>
+                  </Link>
                   <Button
                     variant="outline"
                     size="sm"
                     onClick={handleSignOut}
-                    className="flex items-center space-x-2"
                   >
                     <LogOut className="w-4 h-4" />
-                    <span>Sign Out</span>
                   </Button>
-                </div>
+                </>
               ) : (
-                <div className="flex items-center space-x-3">
+                <div className="flex items-center space-x-2">
                   <Link href="/signin">
-                    <Button variant="outline" size="sm">
+                    <Button variant="ghost" size="sm">
                       Sign In
                     </Button>
                   </Link>
