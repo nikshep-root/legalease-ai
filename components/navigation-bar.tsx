@@ -80,6 +80,9 @@ export function NavigationBar() {
                   <Link href="/blog" className="text-gray-600 hover:text-gray-900 transition-colors">
                     Blog
                   </Link>
+                  <Link href="/templates" className="text-gray-600 hover:text-gray-900 transition-colors">
+                    Templates
+                  </Link>
                   <Link href="/dashboard" className="text-gray-600 hover:text-gray-900 transition-colors">
                     Dashboard
                   </Link>

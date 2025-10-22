@@ -14,7 +14,8 @@ import {
   Clock,
   TrendingUp,
   X,
-  Menu
+  Menu,
+  FileCheck
 } from "lucide-react"
 
 interface MobileSidebarProps {
@@ -130,6 +131,15 @@ export function MobileSidebar({ isOpen, onClose }: MobileSidebarProps) {
               >
                 <ArrowRightLeft className="w-5 h-5" />
                 <span>Compare Documents</span>
+              </Link>
+              
+              <Link 
+                href="/templates" 
+                className="flex items-center space-x-3 p-3 rounded-lg text-gray-700 hover:bg-gray-100 transition-colors"
+                onClick={handleLinkClick}
+              >
+                <FileCheck className="w-5 h-5" />
+                <span>Templates</span>
               </Link>
               
               <Link 
