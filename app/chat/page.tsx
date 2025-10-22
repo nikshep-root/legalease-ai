@@ -10,6 +10,7 @@ import { Send, Bot, User, Loader2, Sparkles, FileText, Download, Trash2 } from '
 import { useSession } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
 import ReactMarkdown from 'react-markdown';
+import { jsPDF } from 'jspdf';
 
 interface Message {
   id: string;
@@ -126,17 +127,101 @@ export default function ChatPage() {
   };
 
   const handleExportChat = () => {
-    const chatText = messages
-      .map((m) => `${m.role === 'user' ? 'You' : 'AI Assistant'} (${m.timestamp.toLocaleString()}):\n${m.content}\n`)
-      .join('\n---\n\n');
+    const doc = new jsPDF();
+    const pageWidth = doc.internal.pageSize.getWidth();
+    const pageHeight = doc.internal.pageSize.getHeight();
+    const margin = 20;
+    const lineHeight = 7;
+    let yPosition = margin;
 
-    const blob = new Blob([chatText], { type: 'text/plain' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = `legal-chat-${Date.now()}.txt`;
-    a.click();
-    URL.revokeObjectURL(url);
+    // Header
+    doc.setFontSize(20);
+    doc.setFont('helvetica', 'bold');
+    doc.text('LegalEase AI - Chat Conversation', margin, yPosition);
+    yPosition += 10;
+
+    doc.setFontSize(10);
+    doc.setFont('helvetica', 'normal');
+    doc.setTextColor(100);
+    doc.text(`Exported: ${new Date().toLocaleString()}`, margin, yPosition);
+    doc.text(`Total Messages: ${messages.length}`, pageWidth - margin - 40, yPosition);
+    yPosition += 15;
+
+    // Draw line
+    doc.setDrawColor(200);
+    doc.line(margin, yPosition, pageWidth - margin, yPosition);
+    yPosition += 10;
+
+    // Messages
+    messages.forEach((message, index) => {
+      // Check if we need a new page
+      if (yPosition > pageHeight - 30) {
+        doc.addPage();
+        yPosition = margin;
+      }
+
+      // Message header
+      doc.setFontSize(11);
+      doc.setFont('helvetica', 'bold');
+      if (message.role === 'user') {
+        doc.setTextColor(37, 99, 235); // Blue for user
+        doc.text('You', margin, yPosition);
+      } else {
+        doc.setTextColor(79, 70, 229); // Purple for AI
+        doc.text('AI Assistant', margin, yPosition);
+      }
+
+      // Timestamp
+      doc.setFontSize(8);
+      doc.setFont('helvetica', 'normal');
+      doc.setTextColor(150);
+      doc.text(message.timestamp.toLocaleTimeString(), margin + 50, yPosition);
+      yPosition += lineHeight;
+
+      // Message content
+      doc.setFontSize(10);
+      doc.setFont('helvetica', 'normal');
+      doc.setTextColor(0);
+      
+      // Split text to fit width
+      const maxWidth = pageWidth - (2 * margin);
+      const lines = doc.splitTextToSize(message.content, maxWidth);
+      
+      lines.forEach((line: string) => {
+        if (yPosition > pageHeight - 20) {
+          doc.addPage();
+          yPosition = margin;
+        }
+        doc.text(line, margin + 5, yPosition);
+        yPosition += lineHeight;
+      });
+
+      yPosition += 5; // Space between messages
+
+      // Separator line
+      if (index < messages.length - 1) {
+        doc.setDrawColor(230);
+        doc.line(margin, yPosition, pageWidth - margin, yPosition);
+        yPosition += 8;
+      }
+    });
+
+    // Footer on last page
+    const totalPages = doc.getNumberOfPages();
+    for (let i = 1; i <= totalPages; i++) {
+      doc.setPage(i);
+      doc.setFontSize(8);
+      doc.setTextColor(150);
+      doc.text(
+        `Page ${i} of ${totalPages}`,
+        pageWidth / 2,
+        pageHeight - 10,
+        { align: 'center' }
+      );
+    }
+
+    // Save PDF
+    doc.save(`legalease-chat-${new Date().toISOString().split('T')[0]}.pdf`);
   };
 
   if (status === 'loading') {
