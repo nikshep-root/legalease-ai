@@ -1,9 +1,15 @@
 import NextAuth from 'next-auth'
 import CredentialsProvider from 'next-auth/providers/credentials'
+import GoogleProvider from 'next-auth/providers/google'
 import { createUser, validateUser } from '@/lib/auth-storage'
+import { createOrUpdateUserProfile } from '@/lib/user-service'
 
 export const authOptions = {
   providers: [
+    GoogleProvider({
+      clientId: process.env.GOOGLE_CLIENT_ID || '',
+      clientSecret: process.env.GOOGLE_CLIENT_SECRET || '',
+    }),
     CredentialsProvider({
       name: 'credentials',
       credentials: {
@@ -64,15 +70,36 @@ export const authOptions = {
     error: '/signin'
   },
   callbacks: {
-    async jwt({ token, user }: any) {
+    async signIn({ user, account, profile }: any) {
+      // Create/update user profile in Firestore when signing in with Google
+      if (account?.provider === 'google' && user) {
+        try {
+          await createOrUpdateUserProfile({
+            id: user.id,
+            name: user.name,
+            email: user.email,
+            image: user.image,
+          });
+        } catch (error) {
+          console.error('Error creating/updating user profile:', error);
+        }
+      }
+      return true;
+    },
+    async jwt({ token, user, account }: any) {
       if (user) {
         token.id = user.id
+      }
+      // Store provider info
+      if (account) {
+        token.provider = account.provider
       }
       return token
     },
     async session({ session, token }: any) {
       if (token) {
         session.user.id = token.id as string
+        session.user.provider = token.provider
       }
       return session
     },
