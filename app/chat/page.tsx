@@ -11,6 +11,7 @@ import { useSession } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
 import ReactMarkdown from 'react-markdown';
 import { jsPDF } from 'jspdf';
+import html2canvas from 'html2canvas';
 
 interface Message {
   id: string;
@@ -126,102 +127,96 @@ export default function ChatPage() {
     ]);
   };
 
-  const handleExportChat = () => {
-    const doc = new jsPDF();
-    const pageWidth = doc.internal.pageSize.getWidth();
-    const pageHeight = doc.internal.pageSize.getHeight();
-    const margin = 20;
-    const lineHeight = 7;
-    let yPosition = margin;
+  const handleExportChat = async () => {
+    // Create a temporary container for the PDF content
+    const exportContainer = document.createElement('div');
+    exportContainer.style.position = 'absolute';
+    exportContainer.style.left = '-9999px';
+    exportContainer.style.width = '800px';
+    exportContainer.style.padding = '40px';
+    exportContainer.style.backgroundColor = 'white';
+    exportContainer.style.fontFamily = 'Arial, sans-serif';
 
-    // Header
-    doc.setFontSize(20);
-    doc.setFont('helvetica', 'bold');
-    doc.text('LegalEase AI - Chat Conversation', margin, yPosition);
-    yPosition += 10;
+    // Build HTML content
+    let htmlContent = `
+      <div style="margin-bottom: 30px;">
+        <h1 style="color: #1e40af; font-size: 24px; margin: 0 0 10px 0;">LegalEase AI - Chat Conversation</h1>
+        <p style="color: #666; font-size: 12px; margin: 0;">
+          Exported: ${new Date().toLocaleString()} | Total Messages: ${messages.length}
+        </p>
+        <hr style="border: none; border-top: 2px solid #e5e7eb; margin: 20px 0;" />
+      </div>
+    `;
 
-    doc.setFontSize(10);
-    doc.setFont('helvetica', 'normal');
-    doc.setTextColor(100);
-    doc.text(`Exported: ${new Date().toLocaleString()}`, margin, yPosition);
-    doc.text(`Total Messages: ${messages.length}`, pageWidth - margin - 40, yPosition);
-    yPosition += 15;
-
-    // Draw line
-    doc.setDrawColor(200);
-    doc.line(margin, yPosition, pageWidth - margin, yPosition);
-    yPosition += 10;
-
-    // Messages
     messages.forEach((message, index) => {
-      // Check if we need a new page
-      if (yPosition > pageHeight - 30) {
-        doc.addPage();
-        yPosition = margin;
-      }
-
-      // Message header
-      doc.setFontSize(11);
-      doc.setFont('helvetica', 'bold');
-      if (message.role === 'user') {
-        doc.setTextColor(37, 99, 235); // Blue for user
-        doc.text('You', margin, yPosition);
-      } else {
-        doc.setTextColor(79, 70, 229); // Purple for AI
-        doc.text('AI Assistant', margin, yPosition);
-      }
-
-      // Timestamp
-      doc.setFontSize(8);
-      doc.setFont('helvetica', 'normal');
-      doc.setTextColor(150);
-      doc.text(message.timestamp.toLocaleTimeString(), margin + 50, yPosition);
-      yPosition += lineHeight;
-
-      // Message content
-      doc.setFontSize(10);
-      doc.setFont('helvetica', 'normal');
-      doc.setTextColor(0);
-      
-      // Split text to fit width
-      const maxWidth = pageWidth - (2 * margin);
-      const lines = doc.splitTextToSize(message.content, maxWidth);
-      
-      lines.forEach((line: string) => {
-        if (yPosition > pageHeight - 20) {
-          doc.addPage();
-          yPosition = margin;
-        }
-        doc.text(line, margin + 5, yPosition);
-        yPosition += lineHeight;
-      });
-
-      yPosition += 5; // Space between messages
-
-      // Separator line
-      if (index < messages.length - 1) {
-        doc.setDrawColor(230);
-        doc.line(margin, yPosition, pageWidth - margin, yPosition);
-        yPosition += 8;
-      }
+      const isUser = message.role === 'user';
+      htmlContent += `
+        <div style="margin-bottom: 25px;">
+          <div style="display: flex; align-items: center; margin-bottom: 8px;">
+            <strong style="color: ${isUser ? '#2563eb' : '#4f46e5'}; font-size: 14px;">
+              ${isUser ? 'You' : 'AI Assistant'}
+            </strong>
+            <span style="color: #999; font-size: 11px; margin-left: 15px;">
+              ${message.timestamp.toLocaleTimeString()}
+            </span>
+          </div>
+          <div style="
+            background-color: ${isUser ? '#eff6ff' : '#f5f3ff'}; 
+            padding: 15px; 
+            border-radius: 8px;
+            font-size: 13px;
+            line-height: 1.6;
+            color: #333;
+            white-space: pre-wrap;
+            word-wrap: break-word;
+          ">
+            ${message.content.replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/\n/g, '<br>')}
+          </div>
+        </div>
+      `;
     });
 
-    // Footer on last page
-    const totalPages = doc.getNumberOfPages();
-    for (let i = 1; i <= totalPages; i++) {
-      doc.setPage(i);
-      doc.setFontSize(8);
-      doc.setTextColor(150);
-      doc.text(
-        `Page ${i} of ${totalPages}`,
-        pageWidth / 2,
-        pageHeight - 10,
-        { align: 'center' }
-      );
-    }
+    exportContainer.innerHTML = htmlContent;
+    document.body.appendChild(exportContainer);
 
-    // Save PDF
-    doc.save(`legalease-chat-${new Date().toISOString().split('T')[0]}.pdf`);
+    try {
+      // Convert HTML to canvas
+      const canvas = await html2canvas(exportContainer, {
+        scale: 2,
+        useCORS: true,
+        logging: false,
+        backgroundColor: '#ffffff',
+      });
+
+      // Create PDF
+      const imgWidth = 210; // A4 width in mm
+      const pageHeight = 297; // A4 height in mm
+      const imgHeight = (canvas.height * imgWidth) / canvas.width;
+      let heightLeft = imgHeight;
+
+      const pdf = new jsPDF('p', 'mm', 'a4');
+      let position = 0;
+
+      // Add image to PDF (handle multiple pages)
+      pdf.addImage(canvas.toDataURL('image/png'), 'PNG', 0, position, imgWidth, imgHeight);
+      heightLeft -= pageHeight;
+
+      while (heightLeft > 0) {
+        position = heightLeft - imgHeight;
+        pdf.addPage();
+        pdf.addImage(canvas.toDataURL('image/png'), 'PNG', 0, position, imgWidth, imgHeight);
+        heightLeft -= pageHeight;
+      }
+
+      // Save PDF
+      pdf.save(`legalease-chat-${new Date().toISOString().split('T')[0]}.pdf`);
+    } catch (error) {
+      console.error('Error generating PDF:', error);
+      alert('Failed to generate PDF. Please try again.');
+    } finally {
+      // Clean up
+      document.body.removeChild(exportContainer);
+    }
   };
 
   if (status === 'loading') {
