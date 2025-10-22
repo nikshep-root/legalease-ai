@@ -7,8 +7,6 @@ import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Heart, MessageCircle, Eye, Bookmark, Calendar, Clock } from 'lucide-react';
 import ReactMarkdown from 'react-markdown';
-import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
-import { vscDarkPlus } from 'react-syntax-highlighter/dist/esm/styles/prism';
 import { ShareButtons } from '@/components/share-buttons';
 import type { BlogPost } from '@/lib/blog-service';
 import Link from 'next/link';
@@ -134,14 +132,11 @@ export function BlogPostViewer({ post, onLike, isLiked = false, showComments = t
             code({ node, inline, className, children, ...props }: any) {
               const match = /language-(\w+)/.exec(className || '');
               return !inline && match ? (
-                <SyntaxHighlighter
-                  style={vscDarkPlus}
-                  language={match[1]}
-                  PreTag="div"
-                  {...props}
-                >
-                  {String(children).replace(/\n$/, '')}
-                </SyntaxHighlighter>
+                <pre className="bg-gray-900 text-gray-100 p-4 rounded-lg overflow-x-auto">
+                  <code className={className} {...props}>
+                    {children}
+                  </code>
+                </pre>
               ) : (
                 <code className={className} {...props}>
                   {children}
