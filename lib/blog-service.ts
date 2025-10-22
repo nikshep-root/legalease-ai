@@ -103,9 +103,16 @@ export async function createBlogPost(data: {
   const slug = generateSlug(data.title);
   const excerpt = generateExcerpt(data.content);
   
-  const postsRef = collection(db, 'blog-posts');
-  const docRef = await addDoc(postsRef, {
-    ...data,
+  // Prepare post data, removing undefined fields
+  const postData: any = {
+    authorId: data.authorId,
+    authorName: data.authorName,
+    authorPhoto: data.authorPhoto,
+    title: data.title,
+    content: data.content,
+    category: data.category,
+    tags: data.tags,
+    status: data.status,
     slug,
     excerpt,
     likes: 0,
@@ -115,7 +122,15 @@ export async function createBlogPost(data: {
     createdAt: serverTimestamp(),
     updatedAt: serverTimestamp(),
     publishedAt: data.status === 'published' ? serverTimestamp() : null,
-  });
+  };
+
+  // Only add coverImage if it's defined
+  if (data.coverImage) {
+    postData.coverImage = data.coverImage;
+  }
+  
+  const postsRef = collection(db, 'blog-posts');
+  const docRef = await addDoc(postsRef, postData);
 
   // Update user post count (create user doc if doesn't exist)
   try {
@@ -181,10 +196,15 @@ export async function updateBlogPost(
     }
   }
 
-  await updateDoc(postRef, {
-    ...data,
-    updatedAt: serverTimestamp(),
+  // Remove undefined fields before updating
+  const updateData: any = { ...data, updatedAt: serverTimestamp() };
+  Object.keys(updateData).forEach(key => {
+    if (updateData[key] === undefined) {
+      delete updateData[key];
+    }
   });
+
+  await updateDoc(postRef, updateData);
 }
 
 // Delete blog post
