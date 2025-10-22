@@ -57,22 +57,32 @@ export default function ProfilePage() {
       return;
     }
 
-    if (status === 'authenticated' && session?.user?.id) {
+    if (status === 'authenticated' && session?.user) {
       loadProfile();
     }
   }, [status, session]);
 
   const loadProfile = async () => {
-    if (!session?.user?.id) return;
+    if (!session?.user) return;
+
+    // Use email as the user ID (guaranteed to exist)
+    const userId = session.user.id || session.user.email;
+    if (!userId) {
+      setError('Unable to load profile - no user identifier found');
+      setIsLoading(false);
+      return;
+    }
 
     setIsLoading(true);
     setError(null);
 
     try {
-      let userProfile = await getUserProfile(session.user.id);
+      console.log('Loading profile for user:', userId);
+      let userProfile = await getUserProfile(userId);
 
       // If profile doesn't exist, create it automatically
       if (!userProfile) {
+        console.log('Profile not found, creating new profile...');
         const initialData = {
           displayName: session.user.name || session.user.email?.split('@')[0] || 'User',
           bio: '',
@@ -82,8 +92,9 @@ export default function ProfilePage() {
           github: '',
         };
         
-        await updateUserProfile(session.user.id, initialData);
-        userProfile = await getUserProfile(session.user.id);
+        await updateUserProfile(userId, initialData);
+        userProfile = await getUserProfile(userId);
+        console.log('Profile created:', userProfile);
       }
 
       if (userProfile) {
@@ -114,14 +125,17 @@ export default function ProfilePage() {
   };
 
   const handleSave = async () => {
-    if (!session?.user?.id) return;
+    if (!session?.user) return;
+
+    const userId = session.user.id || session.user.email;
+    if (!userId) return;
 
     setIsSaving(true);
     setError(null);
     setSaveSuccess(false);
 
     try {
-      await updateUserProfile(session.user.id, formData);
+      await updateUserProfile(userId, formData);
 
       // Reload profile
       await loadProfile();

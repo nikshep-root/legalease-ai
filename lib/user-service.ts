@@ -134,9 +134,10 @@ export async function updateUserProfile(
     
     if (!userSnap.exists()) {
       // Profile doesn't exist, create it with the provided data
+      console.log('Creating new user profile for:', userId);
       await setDoc(userRef, {
         displayName: data.displayName || 'User',
-        email: '', // Will be filled by auth
+        email: userId, // Use userId as email (it's the email address)
         photoURL: data.photoURL || '',
         bio: data.bio || '',
         website: data.website || '',
@@ -150,8 +151,10 @@ export async function updateUserProfile(
         joinedAt: serverTimestamp(),
         updatedAt: serverTimestamp(),
       });
+      console.log('User profile created successfully');
     } else {
       // Profile exists, update it
+      console.log('Updating existing user profile for:', userId);
       await updateDoc(userRef, {
         ...data,
         updatedAt: serverTimestamp(),
