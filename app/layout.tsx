@@ -4,6 +4,7 @@ import { Inter } from "next/font/google"
 import { Suspense } from "react"
 import { AuthProvider } from "@/components/auth-provider"
 import { ThemeProvider } from "@/components/theme-provider"
+import { FloatingChatButton } from "@/components/floating-chat-button"
 import "./globals.css"
 
 const inter = Inter({
@@ -34,6 +35,7 @@ export default function RootLayout({
         >
           <AuthProvider>
             <Suspense fallback={null}>{children}</Suspense>
+            <FloatingChatButton />
           </AuthProvider>
         </ThemeProvider>
       </body>

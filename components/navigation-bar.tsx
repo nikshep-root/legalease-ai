@@ -75,9 +75,6 @@ export function NavigationBar() {
                   <Link href="/templates" className="text-sm font-medium text-gray-700 hover:text-blue-600 transition-colors">
                     Templates
                   </Link>
-                  <Link href="/chat" className="text-sm font-medium text-gray-700 hover:text-blue-600 transition-colors">
-                    AI Chat
-                  </Link>
                   
                   {/* Documents Dropdown */}
                   <DropdownMenu>
