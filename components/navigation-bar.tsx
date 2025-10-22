@@ -4,9 +4,16 @@ import { useState } from "react"
 import { useSession, signOut } from "next-auth/react"
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
-import { User, LogOut, Scale } from "lucide-react"
+import { User, LogOut, Scale, ChevronDown } from "lucide-react"
 import { MobileSidebar, MobileMenuButton } from "@/components/mobile-sidebar"
 import { ThemeToggle } from "@/components/theme-toggle"
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+  DropdownMenuSeparator,
+} from "@/components/ui/dropdown-menu"
 
 export function NavigationBar() {
   const { data: session, status } = useSession()
@@ -68,9 +75,38 @@ export function NavigationBar() {
                   <Link href="/templates" className="text-sm font-medium text-gray-700 hover:text-blue-600 transition-colors">
                     Templates
                   </Link>
-                  <Link href="/documents" className="text-sm font-medium text-gray-700 hover:text-blue-600 transition-colors">
-                    Documents
-                  </Link>
+                  
+                  {/* Documents Dropdown */}
+                  <DropdownMenu>
+                    <DropdownMenuTrigger className="flex items-center text-sm font-medium text-gray-700 hover:text-blue-600 transition-colors focus:outline-none">
+                      Documents
+                      <ChevronDown className="ml-1 h-4 w-4" />
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align="start" className="w-48">
+                      <DropdownMenuItem asChild>
+                        <Link href="/documents" className="w-full cursor-pointer">
+                          📄 My Documents
+                        </Link>
+                      </DropdownMenuItem>
+                      <DropdownMenuItem asChild>
+                        <Link href="/history" className="w-full cursor-pointer">
+                          🕒 History
+                        </Link>
+                      </DropdownMenuItem>
+                      <DropdownMenuItem asChild>
+                        <Link href="/compare" className="w-full cursor-pointer">
+                          🔄 Compare
+                        </Link>
+                      </DropdownMenuItem>
+                      <DropdownMenuSeparator />
+                      <DropdownMenuItem asChild>
+                        <Link href="/dashboard" className="w-full cursor-pointer">
+                          📊 Dashboard
+                        </Link>
+                      </DropdownMenuItem>
+                    </DropdownMenuContent>
+                  </DropdownMenu>
+
                   <Link href="/analytics" className="text-sm font-medium text-gray-700 hover:text-blue-600 transition-colors">
                     Analytics
                   </Link>
@@ -86,19 +122,35 @@ export function NavigationBar() {
               <ThemeToggle />
               {session ? (
                 <>
-                  <Link href="/profile">
-                    <Button variant="ghost" size="sm" className="flex items-center space-x-2">
-                      <User className="w-4 h-4" />
-                      <span className="max-w-[120px] truncate">{session.user?.name || 'Profile'}</span>
-                    </Button>
-                  </Link>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={handleSignOut}
-                  >
-                    <LogOut className="w-4 h-4" />
-                  </Button>
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <Button variant="ghost" size="sm" className="flex items-center space-x-2">
+                        <User className="w-4 h-4" />
+                        <span className="max-w-[100px] truncate">{session.user?.name || session.user?.email?.split('@')[0] || 'User'}</span>
+                        <ChevronDown className="h-4 w-4" />
+                      </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align="end" className="w-48">
+                      <DropdownMenuItem asChild>
+                        <Link href="/profile" className="w-full cursor-pointer">
+                          👤 Profile
+                        </Link>
+                      </DropdownMenuItem>
+                      <DropdownMenuItem asChild>
+                        <Link href="/dashboard" className="w-full cursor-pointer">
+                          📊 Dashboard
+                        </Link>
+                      </DropdownMenuItem>
+                      <DropdownMenuSeparator />
+                      <DropdownMenuItem 
+                        onClick={handleSignOut}
+                        className="text-red-600 cursor-pointer"
+                      >
+                        <LogOut className="w-4 h-4 mr-2" />
+                        Sign Out
+                      </DropdownMenuItem>
+                    </DropdownMenuContent>
+                  </DropdownMenu>
                 </>
               ) : (
                 <div className="flex items-center space-x-2">
