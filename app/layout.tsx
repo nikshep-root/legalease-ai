@@ -5,6 +5,7 @@ import { Suspense } from "react"
 import { AuthProvider } from "@/components/auth-provider"
 import { ThemeProvider } from "@/components/theme-provider"
 import { FloatingChatButton } from "@/components/floating-chat-button"
+import { LegalDisclaimer } from "@/components/legal-disclaimer"
 import "./globals.css"
 
 const inter = Inter({
@@ -36,6 +37,7 @@ export default function RootLayout({
           <AuthProvider>
             <Suspense fallback={null}>{children}</Suspense>
             <FloatingChatButton />
+            <LegalDisclaimer />
           </AuthProvider>
         </ThemeProvider>
       </body>
