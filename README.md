@@ -2,10 +2,12 @@
 
 **Intelligent Legal Document Analysis Platform**
 
-[![Deployed on Vercel](https://img.shields.io/badge/Deployed%20on-Vercel-black?style=for-the-badge&logo=vercel)](https://vercel.com)
+[![Built for Google GenAI Hackathon](https://img.shields.io/badge/Google_GenAI-Hackathon_2025-4285F4?style=for-the-badge&logo=google&logoColor=white)](https://cloud.google.com)
+[![Powered by Google Cloud](https://img.shields.io/badge/Powered_by-Google_Cloud-4285F4?style=for-the-badge&logo=google-cloud&logoColor=white)](https://cloud.google.com)
+[![Cloud Run](https://img.shields.io/badge/Cloud_Run-Deployed-4285F4?style=for-the-badge&logo=google-cloud&logoColor=white)](https://cloud.google.com/run)
 [![Next.js](https://img.shields.io/badge/Next.js_14-black?style=for-the-badge&logo=next.js)](https://nextjs.org/)
 [![TypeScript](https://img.shields.io/badge/TypeScript-007ACC?style=for-the-badge&logo=typescript&logoColor=white)](https://www.typescriptlang.org/)
-[![Firebase](https://img.shields.io/badge/Firebase-FFCA28?style=for-the-badge&logo=firebase&logoColor=black)](https://firebase.google.com/)
+[![Gemini AI](https://img.shields.io/badge/Gemini_2.0-AI_Powered-8E75B2?style=for-the-badge&logo=google&logoColor=white)](https://ai.google.dev)
 
 LegalEase AI is a cutting-edge web application that leverages artificial intelligence to analyze legal documents, extract key insights, identify risks, and provide comprehensive legal analysis. Built for lawyers, legal professionals, and businesses who need quick and accurate document analysis.
 
