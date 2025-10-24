@@ -1,0 +1,51 @@
+steps:
+  # Step 1: Build the Docker container
+  - name: 'gcr.io/cloud-builders/docker'
+    args:
+      - 'build'
+      - '-t'
+      - 'gcr.io/$PROJECT_ID/legalease-ai:$COMMIT_SHA'
+      - '-t'
+      - 'gcr.io/$PROJECT_ID/legalease-ai:latest'
+      - '.'
+    timeout: '900s'
+
+  # Step 2: Push the container to Google Container Registry
+  - name: 'gcr.io/cloud-builders/docker'
+    args:
+      - 'push'
+      - 'gcr.io/$PROJECT_ID/legalease-ai:$COMMIT_SHA'
+
+  - name: 'gcr.io/cloud-builders/docker'
+    args:
+      - 'push'
+      - 'gcr.io/$PROJECT_ID/legalease-ai:latest'
+
+  # Step 3: Deploy to Cloud Run
+  - name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
+    entrypoint: gcloud
+    args:
+      - 'run'
+      - 'deploy'
+      - 'legalease-ai'
+      - '--image=gcr.io/$PROJECT_ID/legalease-ai:latest'
+      - '--region=us-central1'
+      - '--platform=managed'
+      - '--allow-unauthenticated'
+      - '--memory=2Gi'
+      - '--cpu=2'
+      - '--timeout=60'
+      - '--min-instances=0'
+      - '--max-instances=10'
+
+# Save the images
+images:
+  - 'gcr.io/$PROJECT_ID/legalease-ai:$COMMIT_SHA'
+  - 'gcr.io/$PROJECT_ID/legalease-ai:latest'
+
+# Build configuration
+options:
+  machineType: 'E2_HIGHCPU_8'
+  logging: CLOUD_LOGGING_ONLY
+
+timeout: '1200s'
