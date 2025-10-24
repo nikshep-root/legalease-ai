@@ -178,6 +178,15 @@ export function MobileSidebar({ isOpen, onClose }: MobileSidebarProps) {
                 </Link>
                 
                 <Link 
+                  href="/tech-stack" 
+                  className="flex items-center space-x-3 p-3 rounded-lg text-gray-700 hover:bg-blue-50 hover:text-blue-600 transition-colors"
+                  onClick={handleLinkClick}
+                >
+                  <FileCheck className="w-5 h-5" />
+                  <span>Tech Stack</span>
+                </Link>
+                
+                <Link 
                   href="/dashboard" 
                   className="flex items-center space-x-3 p-3 rounded-lg text-gray-700 hover:bg-blue-50 hover:text-blue-600 transition-colors"
                   onClick={handleLinkClick}
