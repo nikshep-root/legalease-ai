@@ -16,9 +16,16 @@ WORKDIR /app
 COPY --from=deps /app/node_modules ./node_modules
 COPY . .
 
+# Build arguments for environment variables
+ARG GOOGLE_AI_API_KEY
+ARG FIREBASE_PROJECT_ID
+ARG NODE_ENV
+
 # Set environment variables for build
 ENV NEXT_TELEMETRY_DISABLED 1
 ENV NODE_ENV production
+ENV GOOGLE_AI_API_KEY=$GOOGLE_AI_API_KEY
+ENV FIREBASE_PROJECT_ID=$FIREBASE_PROJECT_ID
 
 # Build Next.js application
 RUN npm run build

@@ -7,6 +7,12 @@ steps:
       - 'gcr.io/$PROJECT_ID/legalease-ai:$COMMIT_SHA'
       - '-t'
       - 'gcr.io/$PROJECT_ID/legalease-ai:latest'
+      - '--build-arg'
+      - 'GOOGLE_AI_API_KEY=AIzaSyCaUQrPDlB_6CtZzc8VmnoxRBsYZ0gWLDk'
+      - '--build-arg'
+      - 'FIREBASE_PROJECT_ID=legalease-ai-566e9'
+      - '--build-arg'
+      - 'NODE_ENV=production'
       - '.'
     timeout: '900s'
 
