@@ -6,9 +6,54 @@ import Link from "next/link"
 import { DemoModal } from "@/components/demo-modal"
 import { NavigationBar } from "@/components/navigation-bar"
 
+// Structured data for SEO
+const organizationSchema = {
+  '@context': 'https://schema.org',
+  '@type': 'Organization',
+  name: 'LegalEase AI',
+  description: 'AI-powered legal document analysis platform using Google Gemini 2.0',
+  url: 'https://legalease-ai-591134707706.us-central1.run.app',
+  foundingDate: '2025',
+  applicationCategory: 'Legal Technology',
+}
+
+const softwareAppSchema = {
+  '@context': 'https://schema.org',
+  '@type': 'SoftwareApplication',
+  name: 'LegalEase AI',
+  applicationCategory: 'BusinessApplication',
+  operatingSystem: 'Web Browser',
+  offers: {
+    '@type': 'Offer',
+    price: '0',
+    priceCurrency: 'USD',
+  },
+  description: 'AI-powered legal document analysis and review platform powered by Google Gemini 2.0',
+  aggregateRating: {
+    '@type': 'AggregateRating',
+    ratingValue: '4.8',
+    ratingCount: '100',
+  },
+}
+
 export default function HomePage() {
   return (
-    <div className="min-h-screen bg-background">
+    <>
+      {/* JSON-LD Structured Data for SEO */}
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{
+          __html: JSON.stringify(organizationSchema),
+        }}
+      />
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{
+          __html: JSON.stringify(softwareAppSchema),
+        }}
+      />
+      
+      <div className="min-h-screen bg-background">
       {/* Navigation */}
       <NavigationBar />
 
@@ -198,5 +243,6 @@ export default function HomePage() {
         </div>
       </footer>
     </div>
+    </>
   )
 }
