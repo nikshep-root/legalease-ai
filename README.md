@@ -1,4 +1,4 @@
-# 🏛️ LegalEase AI
+# 🏛️ LegalEase AI# 🏛️ LegalEase AI
 
 
 
@@ -556,8 +556,8 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 - **Google Cloud Platform** - For providing the infrastructure and AI capabilities
 - **Google Gemini Team** - For the incredible Gemini 2.0 Flash model
 - **Next.js Team** - For the amazing React framework
-- **Vercel** - For inspiration on developer experience
 - **shadcn** - For the beautiful component library
+- **Open Source Community** - For the amazing tools and libraries
 
 ---
 
