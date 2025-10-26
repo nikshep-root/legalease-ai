@@ -1,2 +1,0 @@
-# Testing Cloud Build Auto-Deploy
-# Updated trigger to correct repository
