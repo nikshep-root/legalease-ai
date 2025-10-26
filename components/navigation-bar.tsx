@@ -113,9 +113,6 @@ export function NavigationBar() {
                   <Link href="/blog" className="text-sm font-medium text-gray-700 hover:text-blue-600 transition-colors">
                     Blog
                   </Link>
-                  <Link href="/pricing" className="text-sm font-medium text-gray-700 hover:text-blue-600 transition-colors">
-                    Pricing
-                  </Link>
                   <Link href="/tech-stack" className="text-sm font-medium text-gray-700 hover:text-blue-600 transition-colors">
                     Tech Stack
                   </Link>
