@@ -93,6 +93,9 @@ export default function ProfilePage() {
         };
         
         await updateUserProfile(userId, initialData);
+        
+        // Wait a bit and retry fetching
+        await new Promise(resolve => setTimeout(resolve, 1000));
         userProfile = await getUserProfile(userId);
         console.log('Profile created:', userProfile);
       }
@@ -107,10 +110,39 @@ export default function ProfilePage() {
           linkedin: userProfile.linkedin || '',
           github: userProfile.github || '',
         });
+      } else {
+        // If still no profile after creation attempt, create a mock profile for display
+        console.log('Creating fallback profile display');
+        const fallbackProfile: UserProfile = {
+          id: userId,
+          displayName: session.user.name || session.user.email?.split('@')[0] || 'User',
+          email: session.user.email || '',
+          photoURL: session.user.image || undefined,
+          bio: '',
+          website: '',
+          twitter: '',
+          linkedin: '',
+          github: '',
+          postsCount: 0,
+          totalLikes: 0,
+          totalViews: 0,
+          reputation: 0,
+          joinedAt: new Date(),
+          updatedAt: new Date(),
+        };
+        setProfile(fallbackProfile);
+        setFormData({
+          displayName: fallbackProfile.displayName || '',
+          bio: fallbackProfile.bio || '',
+          website: fallbackProfile.website || '',
+          twitter: fallbackProfile.twitter || '',
+          linkedin: fallbackProfile.linkedin || '',
+          github: fallbackProfile.github || '',
+        });
       }
     } catch (err) {
       console.error('Error loading profile:', err);
-      setError('Failed to load profile. Please try refreshing the page.');
+      setError(`Failed to load profile: ${err instanceof Error ? err.message : 'Unknown error'}`);
     } finally {
       setIsLoading(false);
     }
