@@ -1,4 +1,4 @@
-# 🏛️ LegalEase AI# 🏛️ LegalEase AI
+# 🏛️ LegalEase AI
 
 
 
