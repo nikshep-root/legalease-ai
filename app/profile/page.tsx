@@ -63,12 +63,47 @@ export default function ProfilePage() {
   }, [status, session]);
 
   const loadProfile = async () => {
-    if (!session?.user) return;
+    if (!session?.user) {
+      console.error('No session user found');
+      setIsLoading(false);
+      return;
+    }
 
     // Use email as the user ID (guaranteed to exist)
     const userId = session.user.id || session.user.email;
+    
+    console.log('Session user:', session.user);
+    console.log('Using userId:', userId);
+    
     if (!userId) {
       setError('Unable to load profile - no user identifier found');
+      // Create a minimal profile anyway from session data
+      const fallbackProfile: UserProfile = {
+        id: 'temp-' + Date.now(),
+        displayName: session.user.name || 'User',
+        email: session.user.email || '',
+        photoURL: session.user.image || undefined,
+        bio: '',
+        website: '',
+        twitter: '',
+        linkedin: '',
+        github: '',
+        postsCount: 0,
+        totalLikes: 0,
+        totalViews: 0,
+        reputation: 0,
+        joinedAt: new Date(),
+        updatedAt: new Date(),
+      };
+      setProfile(fallbackProfile);
+      setFormData({
+        displayName: fallbackProfile.displayName || '',
+        bio: '',
+        website: '',
+        twitter: '',
+        linkedin: '',
+        github: '',
+      });
       setIsLoading(false);
       return;
     }
@@ -95,9 +130,9 @@ export default function ProfilePage() {
         await updateUserProfile(userId, initialData);
         
         // Wait a bit and retry fetching
-        await new Promise(resolve => setTimeout(resolve, 1000));
+        await new Promise(resolve => setTimeout(resolve, 1500));
         userProfile = await getUserProfile(userId);
-        console.log('Profile created:', userProfile);
+        console.log('Profile after creation:', userProfile);
       }
 
       if (userProfile) {
@@ -111,8 +146,8 @@ export default function ProfilePage() {
           github: userProfile.github || '',
         });
       } else {
-        // If still no profile after creation attempt, create a mock profile for display
-        console.log('Creating fallback profile display');
+        // If still no profile after creation attempt, ALWAYS create a fallback profile for display
+        console.log('Creating fallback profile display from session');
         const fallbackProfile: UserProfile = {
           id: userId,
           displayName: session.user.name || session.user.email?.split('@')[0] || 'User',
@@ -139,10 +174,39 @@ export default function ProfilePage() {
           linkedin: fallbackProfile.linkedin || '',
           github: fallbackProfile.github || '',
         });
+        setError('Profile loaded from session. Click "Edit Profile" to save permanently.');
       }
     } catch (err) {
       console.error('Error loading profile:', err);
       setError(`Failed to load profile: ${err instanceof Error ? err.message : 'Unknown error'}`);
+      
+      // ALWAYS create fallback profile even on error
+      const fallbackProfile: UserProfile = {
+        id: userId,
+        displayName: session.user.name || session.user.email?.split('@')[0] || 'User',
+        email: session.user.email || '',
+        photoURL: session.user.image || undefined,
+        bio: '',
+        website: '',
+        twitter: '',
+        linkedin: '',
+        github: '',
+        postsCount: 0,
+        totalLikes: 0,
+        totalViews: 0,
+        reputation: 0,
+        joinedAt: new Date(),
+        updatedAt: new Date(),
+      };
+      setProfile(fallbackProfile);
+      setFormData({
+        displayName: fallbackProfile.displayName || '',
+        bio: '',
+        website: '',
+        twitter: '',
+        linkedin: '',
+        github: '',
+      });
     } finally {
       setIsLoading(false);
     }
