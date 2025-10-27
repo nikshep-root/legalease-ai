@@ -63,6 +63,9 @@ export default function UploadPage() {
 
       // Use the documentId from Firebase or fall back to a generated ID
       const analysisId = analysis.documentId || `analysis_${fileId}_${Date.now()}`
+      
+      console.log("Analysis completed. DocumentId:", analysis.documentId)
+      console.log("Using analysisId:", analysisId)
 
       // Store in localStorage for quick access (analysis is also in Firebase)
       localStorage.setItem(analysisId, JSON.stringify(analysis))

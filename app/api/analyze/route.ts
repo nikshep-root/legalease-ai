@@ -27,26 +27,25 @@ export async function POST(request: NextRequest) {
     // Use Gemini for comprehensive document analysis
     const analysis = await geminiAnalyzer.analyzeDocument(text, fileName || "Unknown Document")
 
-    // Save document record if user is authenticated
+    // Save document record (for both authenticated and unauthenticated users to enable sharing)
     let documentId: string | undefined
-    if (session?.user?.id) {
-      try {
-        // Calculate approximate file size (text length * 1.5 for encoding overhead)
-        const estimatedFileSize = text.length * 1.5
-        
-        documentId = await saveDocumentRecord(
-          session.user.id,
-          fileName || "Unknown Document", 
-          fileName || "Unknown Document",
-          text,
-          { ...analysis, engine: "Gemini Pro" },
-          estimatedFileSize
-        )
-        
-      } catch (saveError) {
-        // Document saving failed, but continue with response
-        // Don't fail the request if document saving fails
-      }
+    try {
+      // Calculate approximate file size (text length * 1.5 for encoding overhead)
+      const estimatedFileSize = text.length * 1.5
+      
+      documentId = await saveDocumentRecord(
+        session?.user?.id || "anonymous", // Use "anonymous" for non-authenticated users
+        fileName || "Unknown Document", 
+        fileName || "Unknown Document",
+        text,
+        { ...analysis, engine: "Gemini Pro" },
+        estimatedFileSize
+      )
+      
+    } catch (saveError) {
+      console.error("Failed to save document:", saveError)
+      // Document saving failed, but continue with response
+      // Don't fail the request if document saving fails
     }
 
     return NextResponse.json({

@@ -276,11 +276,14 @@ export default function ResultsPage({ params }: { params: { id: string } }) {
   useEffect(() => {
     const loadAnalysis = async () => {
       try {
+        console.log("Loading analysis for ID:", params.id)
+        
         // First try localStorage for fast loading (if user analyzed on same browser)
         const storedAnalysis = localStorage.getItem(params.id)
         if (storedAnalysis) {
           try {
             const parsedAnalysis = JSON.parse(storedAnalysis)
+            console.log("Analysis loaded from localStorage")
             setAnalysis(parsedAnalysis)
             setIsLoading(false)
             return
@@ -290,19 +293,28 @@ export default function ResultsPage({ params }: { params: { id: string } }) {
         }
 
         // Fetch from API (for shared links or if localStorage doesn't have it)
+        console.log("Fetching analysis from API:", `/api/analysis/${params.id}`)
         const response = await fetch(`/api/analysis/${params.id}`)
+        
+        console.log("API response status:", response.status)
         
         if (response.ok) {
           const data = await response.json()
+          console.log("Analysis loaded from API:", data)
           setAnalysis(data.analysis)
           
           // Save to localStorage for future quick access
           localStorage.setItem(params.id, JSON.stringify(data.analysis))
         } else if (response.status === 404) {
           // Analysis not found
+          console.error("Analysis not found in database")
+          const errorText = await response.text()
+          console.error("Error details:", errorText)
           setAnalysis(null)
         } else {
           console.error("Failed to load analysis:", response.statusText)
+          const errorText = await response.text()
+          console.error("Error details:", errorText)
           setAnalysis(null)
         }
       } catch (error) {
