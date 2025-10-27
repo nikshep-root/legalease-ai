@@ -86,8 +86,52 @@ export function MobileSidebar({ isOpen, onClose }: MobileSidebarProps) {
 
         {/* Navigation Links */}
         <div className="flex-1 py-4 overflow-y-auto">
-          {session ? (
-            <nav className="space-y-1 px-4">
+          <nav className="space-y-1 px-4">
+            {/* Public Links - Always visible */}
+            <div className="mb-6">
+              <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-3 px-3">
+                Explore
+              </p>
+              <Link 
+                href="/features" 
+                className="flex items-center space-x-3 p-3 rounded-lg text-gray-700 hover:bg-blue-50 hover:text-blue-600 transition-colors"
+                onClick={handleLinkClick}
+              >
+                <FileCheck className="w-5 h-5" />
+                <span>Features</span>
+              </Link>
+              
+              <Link 
+                href="/about" 
+                className="flex items-center space-x-3 p-3 rounded-lg text-gray-700 hover:bg-blue-50 hover:text-blue-600 transition-colors"
+                onClick={handleLinkClick}
+              >
+                <FileText className="w-5 h-5" />
+                <span>About</span>
+              </Link>
+              
+              <Link 
+                href="/blog" 
+                className="flex items-center space-x-3 p-3 rounded-lg text-gray-700 hover:bg-blue-50 hover:text-blue-600 transition-colors"
+                onClick={handleLinkClick}
+              >
+                <FileText className="w-5 h-5" />
+                <span>Blog</span>
+              </Link>
+              
+              <Link 
+                href="/tech-stack" 
+                className="flex items-center space-x-3 p-3 rounded-lg text-gray-700 hover:bg-blue-50 hover:text-blue-600 transition-colors"
+                onClick={handleLinkClick}
+              >
+                <FileCheck className="w-5 h-5" />
+                <span>Tech Stack</span>
+              </Link>
+            </div>
+
+            {/* Authenticated Links - Only when signed in */}
+            {session && (
+              <>
               {/* Main Actions */}
               <div className="mb-6">
                 <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-3 px-3">
@@ -100,15 +144,6 @@ export function MobileSidebar({ isOpen, onClose }: MobileSidebarProps) {
                 >
                   <Upload className="w-5 h-5" />
                   <span>Upload Document</span>
-                </Link>
-                
-                <Link 
-                  href="/templates" 
-                  className="flex items-center space-x-3 p-3 rounded-lg text-gray-700 hover:bg-blue-50 hover:text-blue-600 transition-colors"
-                  onClick={handleLinkClick}
-                >
-                  <FileCheck className="w-5 h-5" />
-                  <span>Templates</span>
                 </Link>
                 
                 <Link 
@@ -160,24 +195,6 @@ export function MobileSidebar({ isOpen, onClose }: MobileSidebarProps) {
                   More
                 </p>
                 <Link 
-                  href="/blog" 
-                  className="flex items-center space-x-3 p-3 rounded-lg text-gray-700 hover:bg-blue-50 hover:text-blue-600 transition-colors"
-                  onClick={handleLinkClick}
-                >
-                  <FileText className="w-5 h-5" />
-                  <span>Blog</span>
-                </Link>
-                
-                <Link 
-                  href="/tech-stack" 
-                  className="flex items-center space-x-3 p-3 rounded-lg text-gray-700 hover:bg-blue-50 hover:text-blue-600 transition-colors"
-                  onClick={handleLinkClick}
-                >
-                  <FileCheck className="w-5 h-5" />
-                  <span>Tech Stack</span>
-                </Link>
-                
-                <Link 
                   href="/dashboard" 
                   className="flex items-center space-x-3 p-3 rounded-lg text-gray-700 hover:bg-blue-50 hover:text-blue-600 transition-colors"
                   onClick={handleLinkClick}
@@ -195,24 +212,28 @@ export function MobileSidebar({ isOpen, onClose }: MobileSidebarProps) {
                   <span>Profile</span>
                 </Link>
               </div>
-            </nav>
-          ) : (
-            <div className="px-4 space-y-3">
-              <p className="text-sm text-gray-600 mb-4">
-                Sign in to access all features
-              </p>
-              <Link href="/signin" onClick={handleLinkClick}>
-                <Button className="w-full justify-center">
-                  Sign In
-                </Button>
-              </Link>
-              <Link href="/signin" onClick={handleLinkClick}>
-                <Button variant="outline" className="w-full justify-center">
-                  Get Started
-                </Button>
-              </Link>
-            </div>
-          )}
+              </>
+            )}
+
+            {/* Sign In CTA - Only when not signed in */}
+            {!session && (
+              <div className="px-4 mt-6 space-y-3">
+                <p className="text-sm text-gray-600 mb-4">
+                  Sign in to upload and analyze documents
+                </p>
+                <Link href="/signin" onClick={handleLinkClick}>
+                  <Button className="w-full justify-center">
+                    Sign In
+                  </Button>
+                </Link>
+                <Link href="/signin" onClick={handleLinkClick}>
+                  <Button variant="outline" className="w-full justify-center">
+                    Get Started
+                  </Button>
+                </Link>
+              </div>
+            )}
+          </nav>
         </div>
 
         {/* Footer */}
