@@ -221,7 +221,7 @@ export async function extractTextFromFile(file: File): Promise<string> {
   })
 }
 
-export async function analyzeDocument(text: string, fileName: string): Promise<DocumentAnalysis> {
+export async function analyzeDocument(text: string, fileName: string): Promise<DocumentAnalysis & { documentId?: string }> {
   const controller = new AbortController()
   const timeoutId = setTimeout(() => controller.abort(), 45000) // 45 second timeout
 
@@ -243,7 +243,8 @@ export async function analyzeDocument(text: string, fileName: string): Promise<D
     }
 
     const result = await response.json()
-    return result.analysis
+    // Return analysis with documentId if available
+    return { ...result.analysis, documentId: result.documentId }
   } catch (error) {
     clearTimeout(timeoutId)
     if (error instanceof Error && error.name === "AbortError") {

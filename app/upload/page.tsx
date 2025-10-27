@@ -56,15 +56,15 @@ export default function UploadPage() {
         setTimeout(() => reject(new Error("Analysis timeout")), 60000),
       )
 
-      const analysis = await Promise.race([analysisPromise, analysisTimeoutPromise])
+      const analysis = (await Promise.race([analysisPromise, analysisTimeoutPromise])) as any
 
 
       setFiles((prev) => prev.map((file) => (file.id === fileId ? { ...file, progress: 90 } : file)))
 
-      // Store analysis result and mark as completed
-      const analysisId = `analysis_${fileId}_${Date.now()}`
+      // Use the documentId from Firebase or fall back to a generated ID
+      const analysisId = analysis.documentId || `analysis_${fileId}_${Date.now()}`
 
-      // Store in localStorage for now (in production, use proper backend)
+      // Store in localStorage for quick access (analysis is also in Firebase)
       localStorage.setItem(analysisId, JSON.stringify(analysis))
 
 

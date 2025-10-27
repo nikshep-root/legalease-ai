@@ -274,21 +274,46 @@ export default function ResultsPage({ params }: { params: { id: string } }) {
   }
 
   useEffect(() => {
-    try {
+    const loadAnalysis = async () => {
+      try {
+        // First try localStorage for fast loading (if user analyzed on same browser)
+        const storedAnalysis = localStorage.getItem(params.id)
+        if (storedAnalysis) {
+          try {
+            const parsedAnalysis = JSON.parse(storedAnalysis)
+            setAnalysis(parsedAnalysis)
+            setIsLoading(false)
+            return
+          } catch (parseError) {
+            console.error("Failed to parse stored analysis:", parseError)
+          }
+        }
 
-      const storedAnalysis = localStorage.getItem(params.id)
-      if (storedAnalysis) {
-        const parsedAnalysis = JSON.parse(storedAnalysis)
-
-        setAnalysis(parsedAnalysis)
-      } else {
-        // No analysis found for the given ID
+        // Fetch from API (for shared links or if localStorage doesn't have it)
+        const response = await fetch(`/api/analysis/${params.id}`)
+        
+        if (response.ok) {
+          const data = await response.json()
+          setAnalysis(data.analysis)
+          
+          // Save to localStorage for future quick access
+          localStorage.setItem(params.id, JSON.stringify(data.analysis))
+        } else if (response.status === 404) {
+          // Analysis not found
+          setAnalysis(null)
+        } else {
+          console.error("Failed to load analysis:", response.statusText)
+          setAnalysis(null)
+        }
+      } catch (error) {
+        console.error("Error loading analysis:", error)
+        setAnalysis(null)
+      } finally {
+        setIsLoading(false)
       }
-    } catch (error) {
-      // Error loading analysis
-    } finally {
-      setIsLoading(false)
     }
+
+    loadAnalysis()
   }, [params.id])
 
   if (isLoading) {
