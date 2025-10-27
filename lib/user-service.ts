@@ -88,16 +88,23 @@ export async function createUserProfile(
  */
 export async function getUserProfile(userId: string): Promise<UserProfile | null> {
   try {
-    const userRef = doc(db, 'users', userId);
-    const userSnap = await getDoc(userRef);
+    const response = await fetch(`/api/profile/${userId}`, {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+    });
 
-    if (!userSnap.exists()) {
-      return null;
+    if (!response.ok) {
+      if (response.status === 404) {
+        return null;
+      }
+      throw new Error(`Failed to fetch profile: ${response.statusText}`);
     }
 
-    const data = userSnap.data();
+    const data = await response.json();
     return {
-      id: userSnap.id,
+      id: data.id,
       displayName: data.displayName || 'Anonymous',
       email: data.email || '',
       photoURL: data.photoURL,
@@ -110,8 +117,8 @@ export async function getUserProfile(userId: string): Promise<UserProfile | null
       totalLikes: data.totalLikes || 0,
       totalViews: data.totalViews || 0,
       reputation: data.reputation || 0,
-      joinedAt: data.joinedAt?.toDate() || new Date(),
-      updatedAt: data.updatedAt?.toDate() || new Date(),
+      joinedAt: data.joinedAt ? new Date(data.joinedAt) : new Date(),
+      updatedAt: data.updatedAt ? new Date(data.updatedAt) : new Date(),
     };
   } catch (error) {
     console.error('Error fetching user profile:', error);
@@ -127,39 +134,19 @@ export async function updateUserProfile(
   data: UpdateUserProfileData
 ): Promise<void> {
   try {
-    const userRef = doc(db, 'users', userId);
-    
-    // Check if profile exists
-    const userSnap = await getDoc(userRef);
-    
-    if (!userSnap.exists()) {
-      // Profile doesn't exist, create it with the provided data
-      console.log('Creating new user profile for:', userId);
-      await setDoc(userRef, {
-        displayName: data.displayName || 'User',
-        email: userId, // Use userId as email (it's the email address)
-        photoURL: data.photoURL || '',
-        bio: data.bio || '',
-        website: data.website || '',
-        twitter: data.twitter || '',
-        linkedin: data.linkedin || '',
-        github: data.github || '',
-        postsCount: 0,
-        totalLikes: 0,
-        totalViews: 0,
-        reputation: 0,
-        joinedAt: serverTimestamp(),
-        updatedAt: serverTimestamp(),
-      });
-      console.log('User profile created successfully');
-    } else {
-      // Profile exists, update it
-      console.log('Updating existing user profile for:', userId);
-      await updateDoc(userRef, {
-        ...data,
-        updatedAt: serverTimestamp(),
-      });
+    const response = await fetch(`/api/profile/${userId}`, {
+      method: 'PUT',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(data),
+    });
+
+    if (!response.ok) {
+      throw new Error(`Failed to update profile: ${response.statusText}`);
     }
+
+    console.log('Profile updated successfully');
   } catch (error) {
     console.error('Error updating user profile:', error);
     throw error;
