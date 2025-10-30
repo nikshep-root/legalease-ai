@@ -20,17 +20,21 @@ export default function CreateBlogPostPage() {
     if (!session?.user) return;
 
     try {
-      const postId = await createBlogPost({
+      const { postId, slug } = await createBlogPost({
         authorId: session.user.id as string,
         authorName: session.user.name || 'Anonymous',
         authorPhoto: session.user.image || '',
         ...data,
       });
 
+      console.log('Blog post created:', { postId, slug, status: data.status });
+
       // Redirect to the new post
       if (data.status === 'published') {
-        router.push(`/blog/${data.title.toLowerCase().replace(/[^a-z0-9]+/g, '-')}`);
+        console.log('Redirecting to published post:', `/blog/${slug}`);
+        router.push(`/blog/${slug}`);
       } else {
+        console.log('Redirecting to blog list (draft saved)');
         router.push('/blog');
       }
     } catch (error) {

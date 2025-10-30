@@ -99,7 +99,7 @@ export async function createBlogPost(data: {
   coverImage?: string;
   status: 'draft' | 'published';
   featured?: boolean;
-}): Promise<string> {
+}): Promise<{ postId: string; slug: string }> {
   try {
     const response = await fetch('/api/blog', {
       method: 'POST',
@@ -123,7 +123,7 @@ export async function createBlogPost(data: {
     }
 
     const result = await response.json();
-    return result.postId;
+    return { postId: result.postId, slug: result.slug };
   } catch (error) {
     console.error('Error creating blog post:', error);
     throw error;
