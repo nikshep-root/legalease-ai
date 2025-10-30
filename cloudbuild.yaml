@@ -53,6 +53,9 @@ steps:
       - '--timeout=60'
       - '--min-instances=0'
       - '--max-instances=10'
+      - '--update-secrets=NEXTAUTH_SECRET=nextauth-secret:latest'
+      - '--update-secrets=GOOGLE_CLIENT_ID=google-client-id:latest'
+      - '--update-secrets=GOOGLE_CLIENT_SECRET=google-client-secret:latest'
       - '--set-env-vars=NEXTAUTH_URL=https://legalease-ai-591134707706.us-central1.run.app'
 
 # Save the images
