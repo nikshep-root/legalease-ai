@@ -21,16 +21,24 @@ function generateExcerpt(content: string, length: number = 200): string {
 
 export async function POST(request: NextRequest) {
   try {
+    console.log('Blog API called - checking session...');
     const session = await getServerSession(authOptions)
+    
+    console.log('Session:', session ? 'Found' : 'Not found');
+    console.log('Session user:', session?.user);
 
     if (!session?.user) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
+      console.error('Unauthorized: No session or user');
+      return NextResponse.json({ error: "Unauthorized - Please sign in" }, { status: 401 })
     }
 
     const body = await request.json()
+    console.log('Request body:', { title: body.title, status: body.status });
+    
     const { title, content, category, tags, coverImage, status, featured } = body
 
     if (!title || !content || !category) {
+      console.error('Missing required fields:', { title: !!title, content: !!content, category: !!category });
       return NextResponse.json(
         { error: "Missing required fields: title, content, category" },
         { status: 400 }
@@ -39,9 +47,12 @@ export async function POST(request: NextRequest) {
 
     const authorId = session.user.id || session.user.email
     if (!authorId) {
+      console.error('Unable to identify user - no id or email');
       return NextResponse.json({ error: "Unable to identify user" }, { status: 400 })
     }
 
+    console.log('Creating blog post for author:', authorId);
+    
     const slug = generateSlug(title)
     const excerpt = generateExcerpt(content)
 
@@ -107,6 +118,8 @@ export async function POST(request: NextRequest) {
       // Don't fail the request if user update fails
     }
 
+    console.log('Blog post created successfully:', { postId: docRef.id, slug });
+
     return NextResponse.json({
       success: true,
       postId: docRef.id,
@@ -114,8 +127,10 @@ export async function POST(request: NextRequest) {
     })
   } catch (error) {
     console.error("Error creating blog post:", error)
+    const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+    console.error("Error details:", errorMessage);
     return NextResponse.json(
-      { error: "Failed to create blog post" },
+      { error: `Failed to create blog post: ${errorMessage}` },
       { status: 500 }
     )
   }

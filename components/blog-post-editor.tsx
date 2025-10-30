@@ -75,6 +75,7 @@ export function BlogPostEditor({ initialData, onSave, onCancel }: BlogPostEditor
 
     setIsSaving(true);
     try {
+      console.log('Saving post with status:', status);
       await onSave({
         title: title.trim(),
         content: content.trim(),
@@ -83,9 +84,11 @@ export function BlogPostEditor({ initialData, onSave, onCancel }: BlogPostEditor
         coverImage: coverImage || undefined,
         status,
       });
+      console.log('Post saved successfully');
     } catch (error) {
       console.error('Error saving post:', error);
-      alert('Failed to save post');
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+      alert(`Failed to save post: ${errorMessage}\n\nPlease check the console for details.`);
     } finally {
       setIsSaving(false);
     }
