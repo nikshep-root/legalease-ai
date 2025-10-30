@@ -100,74 +100,34 @@ export async function createBlogPost(data: {
   status: 'draft' | 'published';
   featured?: boolean;
 }): Promise<string> {
-  const slug = generateSlug(data.title);
-  const excerpt = generateExcerpt(data.content);
-  
-  // Prepare post data, removing undefined fields
-  const postData: any = {
-    authorId: data.authorId,
-    authorName: data.authorName,
-    authorPhoto: data.authorPhoto,
-    title: data.title,
-    content: data.content,
-    category: data.category,
-    tags: data.tags,
-    status: data.status,
-    slug,
-    excerpt,
-    likes: 0,
-    views: 0,
-    commentsCount: 0,
-    featured: data.featured || false,
-    createdAt: serverTimestamp(),
-    updatedAt: serverTimestamp(),
-    publishedAt: data.status === 'published' ? serverTimestamp() : null,
-  };
-
-  // Only add coverImage if it's defined
-  if (data.coverImage) {
-    postData.coverImage = data.coverImage;
-  }
-  
-  const postsRef = collection(db, 'blog-posts');
-  const docRef = await addDoc(postsRef, postData);
-
-  // Update user post count (create user doc if doesn't exist)
   try {
-    const userRef = doc(db, 'users', data.authorId);
-    const userSnap = await getDoc(userRef);
-    
-    if (userSnap.exists()) {
-      await updateDoc(userRef, {
-        postsCount: increment(1),
-      });
-    } else {
-      // Create user document if it doesn't exist
-      await setDoc(userRef, {
-        id: data.authorId,
-        displayName: data.authorName,
-        email: '',
-        photoURL: data.authorPhoto,
-        bio: '',
-        reputation: 0,
-        postsCount: 1,
-        createdAt: serverTimestamp(),
-      });
+    const response = await fetch('/api/blog', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        title: data.title,
+        content: data.content,
+        category: data.category,
+        tags: data.tags,
+        coverImage: data.coverImage,
+        status: data.status,
+        featured: data.featured,
+      }),
+    });
+
+    if (!response.ok) {
+      const error = await response.json();
+      throw new Error(error.error || 'Failed to create blog post');
     }
-  } catch (error) {
-    console.error('Error updating user post count:', error);
-    // Don't fail the whole operation if user count update fails
-  }
 
-  // Update category count
-  try {
-    await updateCategoryCount(data.category, 1);
+    const result = await response.json();
+    return result.postId;
   } catch (error) {
-    console.error('Error updating category count:', error);
-    // Don't fail the whole operation if category count update fails
+    console.error('Error creating blog post:', error);
+    throw error;
   }
-
-  return docRef.id;
 }
 
 // Update blog post
