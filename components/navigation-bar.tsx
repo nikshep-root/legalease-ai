@@ -67,12 +67,6 @@ export function NavigationBar() {
 
             {/* Desktop Navigation Links */}
             <div className="hidden md:flex items-center space-x-6">
-              <Link href="/features" className="text-sm font-medium text-gray-700 hover:text-blue-600 transition-colors">
-                Features
-              </Link>
-              <Link href="/about" className="text-sm font-medium text-gray-700 hover:text-blue-600 transition-colors">
-                About
-              </Link>
               <Link href="/blog" className="text-sm font-medium text-gray-700 hover:text-blue-600 transition-colors">
                 Blog
               </Link>
