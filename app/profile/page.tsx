@@ -28,6 +28,8 @@ import {
   Save,
   X,
   Check,
+  Camera,
+  Upload,
 } from 'lucide-react';
 import Link from 'next/link';
 
@@ -41,6 +43,8 @@ export default function ProfilePage() {
   const [isEditing, setIsEditing] = useState(false);
   const [saveSuccess, setSaveSuccess] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [profilePhoto, setProfilePhoto] = useState<string | null>(null);
+  const [isUploadingPhoto, setIsUploadingPhoto] = useState(false);
 
   const [formData, setFormData] = useState({
     displayName: '',
@@ -220,6 +224,45 @@ export default function ProfilePage() {
     if (saveSuccess) setSaveSuccess(false);
   };
 
+  const handlePhotoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    // Validate file type
+    if (!file.type.startsWith('image/')) {
+      setError('Please upload an image file');
+      return;
+    }
+
+    // Validate file size (max 5MB)
+    if (file.size > 5 * 1024 * 1024) {
+      setError('Image size should be less than 5MB');
+      return;
+    }
+
+    setIsUploadingPhoto(true);
+    setError(null);
+
+    try {
+      // Convert to base64 for preview
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setProfilePhoto(reader.result as string);
+      };
+      reader.readAsDataURL(file);
+
+      // TODO: Upload to Firebase Storage
+      // For now, we'll just use the base64 preview
+      // In production, you'd upload to Firebase Storage and get a URL
+
+    } catch (err) {
+      console.error('Error uploading photo:', err);
+      setError('Failed to upload photo');
+    } finally {
+      setIsUploadingPhoto(false);
+    }
+  };
+
   const handleSave = async () => {
     if (!session?.user) return;
 
@@ -231,7 +274,12 @@ export default function ProfilePage() {
     setSaveSuccess(false);
 
     try {
-      await updateUserProfile(userId, formData);
+      const updateData = {
+        ...formData,
+        ...(profilePhoto && { photoURL: profilePhoto })
+      };
+      
+      await updateUserProfile(userId, updateData);
 
       // Reload profile
       await loadProfile();
@@ -391,19 +439,70 @@ export default function ProfilePage() {
               <CardContent className="space-y-6">
                 {/* Avatar */}
                 <div className="flex items-center gap-6">
-                  <Avatar className="w-24 h-24">
-                    <AvatarImage src={session?.user?.image || profile.photoURL} />
-                    <AvatarFallback className="text-2xl">
-                      {profile.displayName.charAt(0).toUpperCase()}
-                    </AvatarFallback>
-                  </Avatar>
-                  <div>
+                  <div className="relative">
+                    <Avatar className="w-24 h-24">
+                      <AvatarImage src={profilePhoto || session?.user?.image || profile.photoURL} />
+                      <AvatarFallback className="text-2xl">
+                        {profile.displayName.charAt(0).toUpperCase()}
+                      </AvatarFallback>
+                    </Avatar>
+                    {isEditing && (
+                      <label
+                        htmlFor="photo-upload"
+                        className="absolute bottom-0 right-0 bg-blue-600 hover:bg-blue-700 text-white rounded-full p-2 cursor-pointer shadow-lg transition-colors"
+                      >
+                        {isUploadingPhoto ? (
+                          <Loader2 className="w-4 h-4 animate-spin" />
+                        ) : (
+                          <Camera className="w-4 h-4" />
+                        )}
+                        <input
+                          id="photo-upload"
+                          type="file"
+                          accept="image/*"
+                          className="hidden"
+                          onChange={handlePhotoUpload}
+                          disabled={isUploadingPhoto}
+                        />
+                      </label>
+                    )}
+                  </div>
+                  <div className="flex-1">
                     <h3 className="font-semibold mb-1">Profile Photo</h3>
-                    <p className="text-sm text-muted-foreground mb-2">
-                      {session?.user?.image
+                    <p className="text-sm text-muted-foreground mb-3">
+                      {session?.user?.image && !profilePhoto
                         ? 'Managed by your authentication provider'
                         : 'Upload a profile photo to personalize your account'}
                     </p>
+                    {isEditing && (
+                      <div className="flex gap-2">
+                        <label htmlFor="photo-upload">
+                          <Button
+                            type="button"
+                            variant="outline"
+                            size="sm"
+                            disabled={isUploadingPhoto}
+                            asChild
+                          >
+                            <span>
+                              <Upload className="w-4 h-4 mr-2" />
+                              {isUploadingPhoto ? 'Uploading...' : 'Upload Photo'}
+                            </span>
+                          </Button>
+                        </label>
+                        {profilePhoto && (
+                          <Button
+                            type="button"
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => setProfilePhoto(null)}
+                          >
+                            <X className="w-4 h-4 mr-2" />
+                            Remove
+                          </Button>
+                        )}
+                      </div>
+                    )}
                   </div>
                 </div>
 
