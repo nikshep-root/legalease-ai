@@ -8,7 +8,17 @@ export async function GET(request: NextRequest) {
     const orderBy = searchParams.get('orderBy') || 'publishedAt'
     const limitNum = parseInt(searchParams.get('limit') || '20')
 
+    console.log('=== BLOG LIST API CALLED ===')
     console.log('Fetching blog posts with params:', { category, orderBy, limitNum })
+
+    // First, let's check ALL posts (including drafts) to debug
+    const allPostsSnapshot = await db.collection('blog-posts').get()
+    console.log(`Total posts in Firestore (all statuses): ${allPostsSnapshot.size}`)
+    
+    allPostsSnapshot.docs.forEach(doc => {
+      const data = doc.data()
+      console.log(`Post: ${doc.id}, Title: ${data.title}, Status: ${data.status}, Published: ${data.publishedAt}`)
+    })
 
     let query = db.collection('blog-posts')
       .where('status', '==', 'published')
@@ -34,6 +44,7 @@ export async function GET(request: NextRequest) {
       }
     })
 
+    console.log('Returning posts:', posts.length)
     return NextResponse.json({ posts }, { status: 200 })
   } catch (error: any) {
     console.error('Error fetching blog posts:', error)
