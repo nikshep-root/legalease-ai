@@ -87,8 +87,8 @@ export default function ContactPage() {
                     <p className="text-sm text-muted-foreground mb-2">
                       Get help with technical issues or account questions
                     </p>
-                    <a href="mailto:support@legalease-ai.com" className="text-primary hover:underline text-sm">
-                      support@legalease-ai.com
+                    <a href="mailto:nikshepd01@gmail.com" className="text-primary hover:underline text-sm">
+                      nikshepd01@gmail.com
                     </a>
                   </div>
                 </CardContent>
@@ -104,8 +104,8 @@ export default function ContactPage() {
                     <p className="text-sm text-muted-foreground mb-2">
                       Questions about our service or partnership opportunities
                     </p>
-                    <a href="mailto:info@legalease-ai.com" className="text-primary hover:underline text-sm">
-                      info@legalease-ai.com
+                    <a href="mailto:nikshepd01@gmail.com" className="text-primary hover:underline text-sm">
+                      nikshepd01@gmail.com
                     </a>
                   </div>
                 </CardContent>
