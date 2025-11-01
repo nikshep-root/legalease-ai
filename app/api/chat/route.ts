@@ -14,12 +14,13 @@ export async function POST(request: NextRequest) {
     const lastMessage = messages[messages.length - 1]?.content || ""
     
     console.log("[Chat] Processing question:", lastMessage.substring(0, 100))
+    console.log("[Chat] Has document context:", !!(documentAnalysis || documentText))
 
     // Try to use Gemini for intelligent responses first
     let response = ""
     try {
       response = await generateGeminiResponse(lastMessage, documentAnalysis, documentText, messages)
-      console.log("[Chat] Gemini response generated successfully")
+      console.log("[Chat] Gemini response generated successfully, length:", response.length)
     } catch (geminiError) {
       console.error("[Chat] Gemini failed, using fallback:", geminiError)
       response = generateFallbackResponse(lastMessage, documentAnalysis)
@@ -38,6 +39,12 @@ async function generateGeminiResponse(
   documentText: string, 
   messages: any[]
 ): Promise<string> {
+  // Check if API key is available
+  if (!process.env.GOOGLE_AI_API_KEY) {
+    console.error("[Chat] Google AI API key is missing!")
+    throw new Error("API key not configured")
+  }
+
   const conversationHistory = messages.slice(-5).map(msg => 
     `${msg.role === 'user' ? 'User' : 'Assistant'}: ${msg.content}`
   ).join('\n\n')
@@ -74,13 +81,31 @@ ${conversationHistory}
 
 USER QUESTION: ${question}
 
-Please provide a clear, professional, and helpful response. Use simple language when possible, provide examples if relevant, and structure your response with bullet points or sections when appropriate. Keep responses concise but comprehensive.`
+Instructions:
+- Provide a clear, professional, and helpful response
+- Use simple language when possible
+- Provide examples if relevant
+- Structure your response with bullet points or sections when appropriate
+- Keep responses concise but comprehensive
+- Do NOT just provide a generic list of topics you can help with
+- ANSWER THE ACTUAL QUESTION asked by the user
+
+Please answer the user's question directly and thoroughly.`
   }
 
+  console.log("[Chat] Calling Gemini API...")
   const model = genAI.getGenerativeModel({ model: "gemini-2.0-flash-exp" })
   const result = await model.generateContent(prompt)
   const response = result.response
-  return response.text()
+  const text = response.text()
+  
+  console.log("[Chat] Gemini response received, length:", text.length)
+  
+  if (!text || text.trim().length === 0) {
+    throw new Error("Empty response from Gemini")
+  }
+  
+  return text
 }
 
 function generateFallbackResponse(question: string, documentAnalysis: any): string {
