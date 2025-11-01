@@ -27,16 +27,32 @@ export default function BlogPage() {
   const loadData = async () => {
     setIsLoading(true);
     try {
-      const [postsData, categoriesData] = await Promise.all([
-        getBlogPosts({
-          category: selectedCategory !== 'all' ? selectedCategory : undefined,
-          orderBy: sortBy,
-          limit: 20,
-        }),
-        getCategories(),
-      ]);
+      // Fetch posts from API
+      const params = new URLSearchParams({
+        category: selectedCategory !== 'all' ? selectedCategory : 'all',
+        orderBy: sortBy,
+        limit: '20',
+      });
 
-      setPosts(postsData.posts);
+      const response = await fetch(`/api/blog/list?${params}`);
+      if (!response.ok) {
+        throw new Error('Failed to fetch posts');
+      }
+
+      const data = await response.json();
+      
+      // Convert ISO date strings back to Date objects
+      const postsData = data.posts.map((post: any) => ({
+        ...post,
+        createdAt: new Date(post.createdAt),
+        updatedAt: new Date(post.updatedAt),
+        publishedAt: post.publishedAt ? new Date(post.publishedAt) : undefined,
+      }));
+
+      setPosts(postsData);
+
+      // Fetch categories
+      const categoriesData = await getCategories();
       setCategories(categoriesData);
     } catch (error) {
       console.error('Error loading blog data:', error);
