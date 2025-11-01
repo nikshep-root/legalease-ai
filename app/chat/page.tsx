@@ -6,7 +6,7 @@ import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
-import { Send, Bot, User, Loader2, Sparkles, FileText, Download, Trash2 } from 'lucide-react';
+import { Send, Bot, User, Loader2, Sparkles, FileText, Download, Trash2, MessageCircle, Scale, FileSearch, Briefcase, Shield, Lightbulb } from 'lucide-react';
 import { useSession } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
 import ReactMarkdown from 'react-markdown';
@@ -21,12 +21,36 @@ interface Message {
 }
 
 const quickPrompts = [
-  "What is a non-disclosure agreement?",
-  "Explain force majeure clause",
-  "How to negotiate a contract?",
-  "What makes a contract legally binding?",
-  "Difference between terms and conditions",
-  "What is intellectual property?",
+  { 
+    question: "What is a non-disclosure agreement?",
+    icon: Shield,
+    color: "text-blue-500"
+  },
+  { 
+    question: "Explain force majeure clause",
+    icon: Scale,
+    color: "text-purple-500"
+  },
+  { 
+    question: "How to negotiate a contract?",
+    icon: Briefcase,
+    color: "text-green-500"
+  },
+  { 
+    question: "What makes a contract legally binding?",
+    icon: FileSearch,
+    color: "text-orange-500"
+  },
+  { 
+    question: "Difference between terms and conditions",
+    icon: FileText,
+    color: "text-pink-500"
+  },
+  { 
+    question: "What is intellectual property?",
+    icon: Lightbulb,
+    color: "text-yellow-500"
+  },
 ];
 
 export default function ChatPage() {
@@ -383,21 +407,31 @@ export default function ChatPage() {
           {/* Quick Prompts */}
           <Card>
             <CardHeader>
-              <CardTitle className="text-base">Quick Questions</CardTitle>
+              <CardTitle className="text-base flex items-center gap-2">
+                <MessageCircle className="w-5 h-5 text-blue-600" />
+                Quick Questions
+              </CardTitle>
             </CardHeader>
-            <CardContent className="space-y-2">
-              {quickPrompts.map((prompt, index) => (
-                <Button
-                  key={index}
-                  variant="outline"
-                  className="w-full justify-start text-left h-auto py-2 px-3"
-                  onClick={() => handleQuickPrompt(prompt)}
-                  disabled={isLoading}
-                >
-                  <FileText className="w-4 h-4 mr-2 flex-shrink-0" />
-                  <span className="text-sm">{prompt}</span>
-                </Button>
-              ))}
+            <CardContent className="space-y-3">
+              {quickPrompts.map((prompt, index) => {
+                const Icon = prompt.icon;
+                return (
+                  <Button
+                    key={index}
+                    variant="outline"
+                    className="w-full justify-start text-left h-auto py-3 px-4 hover:bg-blue-50 dark:hover:bg-blue-950/20 hover:border-blue-300 dark:hover:border-blue-700 transition-all duration-200 group"
+                    onClick={() => handleQuickPrompt(prompt.question)}
+                    disabled={isLoading}
+                  >
+                    <div className="flex items-start gap-3 w-full">
+                      <div className={`mt-0.5 ${prompt.color} group-hover:scale-110 transition-transform`}>
+                        <Icon className="w-5 h-5" />
+                      </div>
+                      <span className="text-sm leading-relaxed flex-1">{prompt.question}</span>
+                    </div>
+                  </Button>
+                );
+              })}
             </CardContent>
           </Card>
 
