@@ -1,8 +1,6 @@
 import { type NextRequest, NextResponse } from "next/server"
 import { GoogleGenerativeAI } from "@google/generative-ai"
 
-const genAI = new GoogleGenerativeAI(process.env.GOOGLE_AI_API_KEY || '')
-
 export async function POST(request: NextRequest) {
   try {
     const { messages, documentAnalysis, documentText } = await request.json()
@@ -15,14 +13,16 @@ export async function POST(request: NextRequest) {
     
     console.log("[Chat] Processing question:", lastMessage.substring(0, 100))
     console.log("[Chat] Has document context:", !!(documentAnalysis || documentText))
+    console.log("[Chat] API Key available:", !!process.env.GOOGLE_AI_API_KEY)
 
     // Try to use Gemini for intelligent responses first
     let response = ""
     try {
       response = await generateGeminiResponse(lastMessage, documentAnalysis, documentText, messages)
       console.log("[Chat] Gemini response generated successfully, length:", response.length)
-    } catch (geminiError) {
-      console.error("[Chat] Gemini failed, using fallback:", geminiError)
+    } catch (geminiError: any) {
+      console.error("[Chat] Gemini failed with error:", geminiError?.message || geminiError)
+      console.error("[Chat] Full error:", JSON.stringify(geminiError, null, 2))
       response = generateFallbackResponse(lastMessage, documentAnalysis)
     }
 
@@ -44,6 +44,9 @@ async function generateGeminiResponse(
     console.error("[Chat] Google AI API key is missing!")
     throw new Error("API key not configured")
   }
+
+  // Initialize Gemini AI with the API key
+  const genAI = new GoogleGenerativeAI(process.env.GOOGLE_AI_API_KEY)
 
   // Filter out initial welcome message and only include actual conversation
   const conversationMessages = messages.filter(msg => 
@@ -96,7 +99,19 @@ Your response:`
   }
 
   console.log("[Chat] Calling Gemini API with prompt length:", prompt.length)
-  const model = genAI.getGenerativeModel({ model: "gemini-2.0-flash" })
+  
+  // Try gemini-2.0-flash first, fallback to gemini-1.5-flash if needed
+  let model;
+  let modelName = "gemini-2.0-flash";
+  
+  try {
+    model = genAI.getGenerativeModel({ model: modelName })
+    console.log("[Chat] Using model:", modelName)
+  } catch (modelError: any) {
+    console.error("[Chat] Failed to initialize gemini-2.0-flash, trying gemini-1.5-flash:", modelError?.message)
+    modelName = "gemini-1.5-flash"
+    model = genAI.getGenerativeModel({ model: modelName })
+  }
   
   const result = await model.generateContent(prompt)
   const response = result.response
