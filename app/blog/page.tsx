@@ -7,7 +7,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { BlogPostCard } from '@/components/blog-post-card';
 import { getBlogPosts, getCategories, type BlogPost, type Category } from '@/lib/blog-service';
-import { PenSquare, Search, TrendingUp, Clock, Heart } from 'lucide-react';
+import { PenSquare, Search, TrendingUp, Clock, Heart, RefreshCw } from 'lucide-react';
 import Link from 'next/link';
 import { useSession } from 'next-auth/react';
 
@@ -81,14 +81,25 @@ export default function BlogPage() {
             Expert legal advice, contract tips, and industry insights from the LegalEase AI community
           </p>
         </div>
-        {session && (
-          <Link href="/blog/create">
-            <Button size="lg">
-              <PenSquare className="w-4 h-4 mr-2" />
-              Write a Post
-            </Button>
-          </Link>
-        )}
+        <div className="flex gap-2">
+          <Button
+            variant="outline"
+            size="lg"
+            onClick={loadData}
+            disabled={isLoading}
+          >
+            <RefreshCw className={`w-4 h-4 mr-2 ${isLoading ? 'animate-spin' : ''}`} />
+            Refresh
+          </Button>
+          {session && (
+            <Link href="/blog/create">
+              <Button size="lg">
+                <PenSquare className="w-4 h-4 mr-2" />
+                Write a Post
+              </Button>
+            </Link>
+          )}
+        </div>
       </div>
 
       {/* Featured Posts */}
