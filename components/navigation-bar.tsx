@@ -161,7 +161,7 @@ export function NavigationBar() {
                     </Button>
                   </Link>
                   <Link href="/signin">
-                    <Button size="sm">
+                    <Button size="sm" className="bg-blue-600 hover:bg-blue-700 text-white">
                       Get Started
                     </Button>
                   </Link>
