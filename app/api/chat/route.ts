@@ -45,7 +45,12 @@ async function generateGeminiResponse(
     throw new Error("API key not configured")
   }
 
-  const conversationHistory = messages.slice(-5).map(msg => 
+  // Filter out initial welcome message and only include actual conversation
+  const conversationMessages = messages.filter(msg => 
+    !(msg.role === 'assistant' && msg.content.includes("👋 Hello! I'm your AI Legal Assistant"))
+  )
+  
+  const conversationHistory = conversationMessages.slice(-5).map(msg => 
     `${msg.role === 'user' ? 'User' : 'Assistant'}: ${msg.content}`
   ).join('\n\n')
 
@@ -73,33 +78,32 @@ CURRENT QUESTION: ${question}
 
 Please provide a helpful, accurate response based on the document analysis and text. If you reference specific information, cite where it comes from (analysis vs document text). Keep responses concise but informative.`
   } else {
-    // General legal assistant mode
-    prompt = `You are an expert AI Legal Assistant helping users understand legal concepts, contract terms, and legal procedures. You provide clear, accurate, and helpful information.
+    // General legal assistant mode - NO DOCUMENT CONTEXT
+    prompt = `You are an expert AI Legal Assistant. Answer the user's question about legal concepts with clear, accurate, and helpful information.
 
-RECENT CONVERSATION:
-${conversationHistory}
+${conversationHistory ? `Previous conversation:\n${conversationHistory}\n\n` : ''}User's question: ${question}
 
-USER QUESTION: ${question}
+IMPORTANT INSTRUCTIONS:
+- Answer the SPECIFIC question asked
+- Provide detailed, educational content
+- Use examples and explanations
+- Structure with bullet points when helpful
+- DO NOT just list topics you can help with
+- DO NOT give a generic response about what you can do
+- ANSWER THE ACTUAL QUESTION DIRECTLY
 
-Instructions:
-- Provide a clear, professional, and helpful response
-- Use simple language when possible
-- Provide examples if relevant
-- Structure your response with bullet points or sections when appropriate
-- Keep responses concise but comprehensive
-- Do NOT just provide a generic list of topics you can help with
-- ANSWER THE ACTUAL QUESTION asked by the user
-
-Please answer the user's question directly and thoroughly.`
+Your response:`
   }
 
-  console.log("[Chat] Calling Gemini API...")
-  const model = genAI.getGenerativeModel({ model: "gemini-2.0-flash-exp" })
+  console.log("[Chat] Calling Gemini API with prompt length:", prompt.length)
+  const model = genAI.getGenerativeModel({ model: "gemini-2.0-flash" })
+  
   const result = await model.generateContent(prompt)
   const response = result.response
   const text = response.text()
   
   console.log("[Chat] Gemini response received, length:", text.length)
+  console.log("[Chat] Response preview:", text.substring(0, 100))
   
   if (!text || text.trim().length === 0) {
     throw new Error("Empty response from Gemini")
