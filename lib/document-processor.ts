@@ -18,11 +18,11 @@ async function loadPdfjsLib() {
       
       pdfjsLib = pdfjs
       
-      // Set the worker source - use the bundled worker from node_modules
-      // This avoids CDN loading issues and works better in production
+      // Set the worker source - use the local worker file from public directory
+      // This avoids CDN loading issues and works reliably in all environments
       if (pdfjsLib.GlobalWorkerOptions) {
-        // Use the worker from the installed pdfjs-dist package
-        pdfjsLib.GlobalWorkerOptions.workerSrc = `https://unpkg.com/pdfjs-dist@3.11.174/build/pdf.worker.min.js`
+        // Use the worker file served from our own public directory
+        pdfjsLib.GlobalWorkerOptions.workerSrc = '/pdf.worker.min.js'
       }
       
 
