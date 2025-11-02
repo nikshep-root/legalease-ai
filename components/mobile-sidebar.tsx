@@ -110,35 +110,38 @@ export function MobileSidebar({ isOpen, onClose }: MobileSidebarProps) {
                 <FileCheck className="w-5 h-5" />
                 <span>Tech Stack</span>
               </Link>
+              
+              <Link 
+                href="/upload" 
+                className="flex items-center space-x-3 p-3 rounded-lg text-gray-700 hover:bg-blue-50 hover:text-blue-600 transition-colors"
+                onClick={handleLinkClick}
+              >
+                <Upload className="w-5 h-5" />
+                <span>Upload</span>
+              </Link>
+              
+              <Link 
+                href="/documents" 
+                className="flex items-center space-x-3 p-3 rounded-lg text-gray-700 hover:bg-blue-50 hover:text-blue-600 transition-colors"
+                onClick={handleLinkClick}
+              >
+                <FileText className="w-5 h-5" />
+                <span>Documents</span>
+              </Link>
+              
+              <Link 
+                href="/analytics" 
+                className="flex items-center space-x-3 p-3 rounded-lg text-gray-700 hover:bg-blue-50 hover:text-blue-600 transition-colors"
+                onClick={handleLinkClick}
+              >
+                <TrendingUp className="w-5 h-5" />
+                <span>Analytics</span>
+              </Link>
             </div>
 
             {/* Authenticated Links - Only when signed in */}
             {session && (
               <>
-              {/* Main Actions */}
-              <div className="mb-6">
-                <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-3 px-3">
-                  Main
-                </p>
-                <Link 
-                  href="/upload" 
-                  className="flex items-center space-x-3 p-3 rounded-lg text-gray-700 hover:bg-blue-50 hover:text-blue-600 transition-colors"
-                  onClick={handleLinkClick}
-                >
-                  <Upload className="w-5 h-5" />
-                  <span>Upload Document</span>
-                </Link>
-                
-                <Link 
-                  href="/documents" 
-                  className="flex items-center space-x-3 p-3 rounded-lg text-gray-700 hover:bg-blue-50 hover:text-blue-600 transition-colors"
-                  onClick={handleLinkClick}
-                >
-                  <FileText className="w-5 h-5" />
-                  <span>My Documents</span>
-                </Link>
-              </div>
-
               {/* Tools */}
               <div className="mb-6">
                 <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-3 px-3">
@@ -151,15 +154,6 @@ export function MobileSidebar({ isOpen, onClose }: MobileSidebarProps) {
                 >
                   <ArrowRightLeft className="w-5 h-5" />
                   <span>Compare</span>
-                </Link>
-                
-                <Link 
-                  href="/analytics" 
-                  className="flex items-center space-x-3 p-3 rounded-lg text-gray-700 hover:bg-blue-50 hover:text-blue-600 transition-colors"
-                  onClick={handleLinkClick}
-                >
-                  <TrendingUp className="w-5 h-5" />
-                  <span>Analytics</span>
                 </Link>
                 
                 <Link 
@@ -202,7 +196,7 @@ export function MobileSidebar({ isOpen, onClose }: MobileSidebarProps) {
             {!session && (
               <div className="px-4 mt-6 space-y-3">
                 <p className="text-sm text-gray-600 mb-4">
-                  Sign in to upload and analyze documents
+                  Sign in to access all features
                 </p>
                 <Link href="/signin" onClick={handleLinkClick}>
                   <Button className="w-full justify-center">

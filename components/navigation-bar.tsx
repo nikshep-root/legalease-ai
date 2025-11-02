@@ -73,49 +73,44 @@ export function NavigationBar() {
               <Link href="/tech-stack" className="text-sm font-medium text-gray-700 hover:text-blue-600 transition-colors">
                 Tech Stack
               </Link>
+              <Link href="/upload" className="text-sm font-medium text-gray-700 hover:text-blue-600 transition-colors">
+                Upload
+              </Link>
               
-              {session && (
-                <>
-                  <Link href="/upload" className="text-sm font-medium text-gray-700 hover:text-blue-600 transition-colors">
-                    Upload
-                  </Link>
-                  
-                  {/* Documents Dropdown */}
-                  <DropdownMenu>
-                    <DropdownMenuTrigger className="flex items-center text-sm font-medium text-gray-700 hover:text-blue-600 transition-colors focus:outline-none">
-                      Documents
-                      <ChevronDown className="ml-1 h-4 w-4" />
-                    </DropdownMenuTrigger>
-                    <DropdownMenuContent align="start" className="w-48">
-                      <DropdownMenuItem asChild>
-                        <Link href="/documents" className="w-full cursor-pointer">
-                          📄 My Documents
-                        </Link>
-                      </DropdownMenuItem>
-                      <DropdownMenuItem asChild>
-                        <Link href="/history" className="w-full cursor-pointer">
-                          🕒 History
-                        </Link>
-                      </DropdownMenuItem>
-                      <DropdownMenuItem asChild>
-                        <Link href="/compare" className="w-full cursor-pointer">
-                          🔄 Compare
-                        </Link>
-                      </DropdownMenuItem>
-                      <DropdownMenuSeparator />
-                      <DropdownMenuItem asChild>
-                        <Link href="/dashboard" className="w-full cursor-pointer">
-                          📊 Dashboard
-                        </Link>
-                      </DropdownMenuItem>
-                    </DropdownMenuContent>
-                  </DropdownMenu>
+              {/* Documents Dropdown */}
+              <DropdownMenu>
+                <DropdownMenuTrigger className="flex items-center text-sm font-medium text-gray-700 hover:text-blue-600 transition-colors focus:outline-none">
+                  Documents
+                  <ChevronDown className="ml-1 h-4 w-4" />
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="start" className="w-48">
+                  <DropdownMenuItem asChild>
+                    <Link href="/documents" className="w-full cursor-pointer">
+                      📄 My Documents
+                    </Link>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem asChild>
+                    <Link href="/history" className="w-full cursor-pointer">
+                      🕒 History
+                    </Link>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem asChild>
+                    <Link href="/compare" className="w-full cursor-pointer">
+                      🔄 Compare
+                    </Link>
+                  </DropdownMenuItem>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem asChild>
+                    <Link href="/dashboard" className="w-full cursor-pointer">
+                      📊 Dashboard
+                    </Link>
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
 
-                  <Link href="/analytics" className="text-sm font-medium text-gray-700 hover:text-blue-600 transition-colors">
-                    Analytics
-                  </Link>
-                </>
-              )}
+              <Link href="/analytics" className="text-sm font-medium text-gray-700 hover:text-blue-600 transition-colors">
+                Analytics
+              </Link>
             </div>
 
             {/* Desktop User Menu */}
