@@ -63,6 +63,19 @@ export default function MobileCameraScanner({ onComplete, onCancel }: MobileCame
       
       let mediaStream: MediaStream | null = null;
       
+      // Check camera permissions first
+      try {
+        const permissionStatus = await navigator.permissions.query({ name: 'camera' as PermissionName });
+        console.log('[Camera] Permission status:', permissionStatus.state);
+        
+        if (permissionStatus.state === 'denied') {
+          throw new Error('Camera access is blocked. Please allow camera access in your browser settings and refresh the page.');
+        }
+      } catch (permError) {
+        // Permission API might not be supported, continue with getUserMedia
+        console.log('[Camera] Permission API not supported, continuing...');
+      }
+      
       // Try with ideal constraints first
       try {
         console.log('[Camera] Requesting camera access...');
@@ -78,11 +91,11 @@ export default function MobileCameraScanner({ onComplete, onCancel }: MobileCame
         
         // Check specific error types
         if (idealError.name === 'NotAllowedError') {
-          throw new Error('Camera permission denied. Please click the camera icon in your browser address bar and allow access.');
+          throw new Error('Camera permission denied. Please click "Allow" when your browser asks for camera access, or check the camera icon in your browser address bar.');
         } else if (idealError.name === 'NotFoundError') {
-          throw new Error('No camera found. Please connect a camera and try again.');
+          throw new Error('No camera found. Please make sure your device has a camera and try again.');
         } else if (idealError.name === 'NotReadableError') {
-          throw new Error('Camera is already in use by another application. Please close other apps using the camera.');
+          throw new Error('Camera is already in use by another app. Please close other apps using the camera and try again.');
         }
         
         // Fallback to basic constraints
@@ -92,7 +105,7 @@ export default function MobileCameraScanner({ onComplete, onCancel }: MobileCame
           });
         } catch (basicError: any) {
           if (basicError.name === 'NotAllowedError') {
-            throw new Error('Camera permission denied. Please allow camera access in your browser settings.');
+            throw new Error('Camera permission denied. Please click "Allow" when prompted, or enable camera access in your browser settings.');
           }
           throw basicError;
         }

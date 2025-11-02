@@ -25,20 +25,61 @@ export default function ResultsPage({ params }: { params: { id: string } }) {
   const [isLoading, setIsLoading] = useState(true)
 
   const handleShare = async () => {
-    if (navigator.share && analysis) {
+    if (!analysis) return;
+    
+    const shareUrl = typeof window !== 'undefined' ? window.location.href : '';
+    const shareTitle = 'Legal Document Analysis';
+    const shareText = `Document Analysis Summary: ${analysis.summary.substring(0, 100)}...`;
+    
+    // Check if Web Share API is available and supported
+    if (typeof navigator !== 'undefined' && navigator.share) {
       try {
         await navigator.share({
-          title: "Legal Document Analysis",
-          text: `Document Analysis Summary: ${analysis.summary.substring(0, 100)}...`,
-          url: window.location.href,
-        })
-      } catch (error) {
-
+          title: shareTitle,
+          text: shareText,
+          url: shareUrl,
+        });
+        console.log('Successfully shared');
+      } catch (error: any) {
+        // User cancelled sharing or error occurred
+        if (error.name !== 'AbortError') {
+          console.error('Error sharing:', error);
+          // Fallback to clipboard
+          fallbackCopyToClipboard(shareUrl);
+        }
       }
     } else {
       // Fallback: copy link to clipboard
-      navigator.clipboard.writeText(window.location.href)
-      alert("Link copied to clipboard!")
+      fallbackCopyToClipboard(shareUrl);
+    }
+  }
+  
+  const fallbackCopyToClipboard = async (url: string) => {
+    try {
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        await navigator.clipboard.writeText(url);
+        alert("Link copied to clipboard!");
+      } else {
+        // Fallback for older browsers
+        const textArea = document.createElement("textarea");
+        textArea.value = url;
+        textArea.style.position = "fixed";
+        textArea.style.left = "-999999px";
+        document.body.appendChild(textArea);
+        textArea.focus();
+        textArea.select();
+        try {
+          document.execCommand('copy');
+          alert("Link copied to clipboard!");
+        } catch (err) {
+          console.error('Fallback copy failed:', err);
+          alert("Failed to copy link. Please copy manually: " + url);
+        }
+        document.body.removeChild(textArea);
+      }
+    } catch (err) {
+      console.error('Failed to copy to clipboard:', err);
+      alert("Failed to copy link. Please copy manually from the address bar.");
     }
   }
 
