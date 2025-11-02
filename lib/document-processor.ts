@@ -18,10 +18,11 @@ async function loadPdfjsLib() {
       
       pdfjsLib = pdfjs
       
-      // Set the worker source - this is needed for pdf.js to work in the browser
-      // We're using the CDN version to avoid issues with Next.js server-side rendering
+      // Set the worker source - use the bundled worker from node_modules
+      // This avoids CDN loading issues and works better in production
       if (pdfjsLib.GlobalWorkerOptions) {
-        pdfjsLib.GlobalWorkerOptions.workerSrc = `https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js`
+        // Use the worker from the installed pdfjs-dist package
+        pdfjsLib.GlobalWorkerOptions.workerSrc = `https://unpkg.com/pdfjs-dist@3.11.174/build/pdf.worker.min.js`
       }
       
 
@@ -196,6 +197,54 @@ export async function extractTextFromFile(file: File): Promise<string> {
       reader.onerror = (event) => {
         console.error("[v0] FileReader error:", event)
         reject(new Error("Error reading PDF file. The file may be corrupted or inaccessible."))
+      }
+      reader.readAsArrayBuffer(file)
+    } else if (
+      file.type === "application/vnd.openxmlformats-officedocument.presentationml.presentation" ||
+      file.type === "application/vnd.ms-powerpoint" ||
+      file.type === "application/vnd.openxmlformats-officedocument.wordprocessingml.document" ||
+      file.type === "application/msword" ||
+      file.name.endsWith('.pptx') ||
+      file.name.endsWith('.ppt') ||
+      file.name.endsWith('.docx') ||
+      file.name.endsWith('.doc')
+    ) {
+      // For Office documents, we'll extract text using a simple approach
+      // Note: For production, consider using libraries like mammoth.js for Word or pptx2json for PowerPoint
+      const reader = new FileReader()
+      reader.onload = async (event) => {
+        try {
+          const arrayBuffer = event.target?.result as ArrayBuffer
+          if (!arrayBuffer) {
+            reject(new Error("Failed to read file"))
+            return
+          }
+
+          // Convert to text (this is a basic extraction - won't get perfect formatting)
+          const uint8Array = new Uint8Array(arrayBuffer)
+          const decoder = new TextDecoder('utf-8')
+          let text = decoder.decode(uint8Array)
+          
+          // Office files have XML content - extract text between tags
+          // This is a simplified approach that works for basic text extraction
+          text = text.replace(/<[^>]*>/g, ' ') // Remove XML tags
+          text = text.replace(/\s+/g, ' ').trim() // Clean up whitespace
+          
+          // Filter out binary/control characters
+          text = text.replace(/[^\x20-\x7E\n\r\t]/g, '')
+          
+          if (text.length < 50) {
+            reject(new Error("Could not extract sufficient text from document. The file may be empty or in an unsupported format."))
+            return
+          }
+          
+          resolve(text)
+        } catch (error) {
+          reject(new Error("Failed to extract text from Office document"))
+        }
+      }
+      reader.onerror = () => {
+        reject(new Error("Error reading Office file"))
       }
       reader.readAsArrayBuffer(file)
     } else {

@@ -129,7 +129,21 @@ export default function UploadPage() {
 
   const handleFiles = useCallback((newFiles: File[]) => {
     const validFiles = newFiles.filter((file) => {
-      const isValidType = file.type === "application/pdf" || file.type === "text/plain"
+      const validTypes = [
+        "application/pdf",
+        "text/plain",
+        "application/vnd.openxmlformats-officedocument.presentationml.presentation", // .pptx
+        "application/vnd.ms-powerpoint", // .ppt
+        "application/vnd.openxmlformats-officedocument.wordprocessingml.document", // .docx
+        "application/msword", // .doc
+      ]
+      const isValidType = validTypes.includes(file.type) || 
+        file.name.endsWith('.pdf') || 
+        file.name.endsWith('.txt') ||
+        file.name.endsWith('.pptx') ||
+        file.name.endsWith('.ppt') ||
+        file.name.endsWith('.docx') ||
+        file.name.endsWith('.doc')
       const isValidSize = file.size <= 10 * 1024 * 1024 // 10MB limit
       return isValidType && isValidSize
     })
