@@ -1,8 +1,8 @@
-# 🏛️ LegalEase AI# 🏛️ LegalEase AI
+# 🏛️ LegalEase AI
 
 
 
-**AI-Powered Legal Document Intelligence Platform****AI-Powered Legal Document Intelligence Platform**
+**AI-Powered Legal Document Intelligence Platform**
 
 
 
