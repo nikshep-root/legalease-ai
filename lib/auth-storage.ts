@@ -1,6 +1,5 @@
-import fs from 'fs'
-import path from 'path'
 import bcrypt from 'bcryptjs'
+import { db } from '@/lib/firebase-admin'
 
 interface User {
   id: string
@@ -10,48 +9,21 @@ interface User {
   createdAt: string
 }
 
-const USERS_FILE = path.join(process.cwd(), 'data', 'users.json')
-
-// Ensure data directory exists
-function ensureDataDirectory() {
-  const dataDir = path.join(process.cwd(), 'data')
-  if (!fs.existsSync(dataDir)) {
-    fs.mkdirSync(dataDir, { recursive: true })
-  }
-}
-
-// Read users from file
-function readUsers(): User[] {
-  try {
-    ensureDataDirectory()
-    if (!fs.existsSync(USERS_FILE)) {
-      return []
-    }
-    const data = fs.readFileSync(USERS_FILE, 'utf8')
-    return JSON.parse(data)
-  } catch (error) {
-    console.error('[Auth Storage] Error reading users file:', error)
-    return []
-  }
-}
-
-// Write users to file
-function writeUsers(users: User[]) {
-  try {
-    ensureDataDirectory()
-    fs.writeFileSync(USERS_FILE, JSON.stringify(users, null, 2))
-  } catch (error) {
-    console.error('[Auth Storage] Error writing users file:', error)
-  }
-}
+const USERS_COLLECTION = 'users'
 
 export async function createUser(name: string, email: string, password: string): Promise<User | null> {
   try {
-    const users = readUsers()
+    const emailLowercase = email.toLowerCase()
     
     // Check if user already exists
-    const existingUser = users.find(u => u.email.toLowerCase() === email.toLowerCase())
-    if (existingUser) {
+    const existingUserSnapshot = await db
+      .collection(USERS_COLLECTION)
+      .where('email', '==', emailLowercase)
+      .limit(1)
+      .get()
+    
+    if (!existingUserSnapshot.empty) {
+      console.log(`[Auth Storage] ❌ User already exists: ${email}`)
       throw new Error('User already exists with this email')
     }
 
@@ -59,32 +31,43 @@ export async function createUser(name: string, email: string, password: string):
     const hashedPassword = await bcrypt.hash(password, 12)
     
     // Create new user
+    const userId = `user_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`
     const newUser: User = {
-      id: Date.now().toString(),
+      id: userId,
       name,
-      email: email.toLowerCase(), // Store email in lowercase for consistency
+      email: emailLowercase,
       password: hashedPassword,
       createdAt: new Date().toISOString()
     }
 
-    // Add to users array and save
-    users.push(newUser)
-    writeUsers(users)
+    // Save to Firestore
+    await db.collection(USERS_COLLECTION).doc(userId).set(newUser)
     
-    console.log(`[Auth Storage] ✅ User created: ${email}`)
+    console.log(`[Auth Storage] ✅ User created in Firestore: ${email}`)
     return { ...newUser, password: '' } // Don't return password
     
   } catch (error) {
     console.error('[Auth Storage] Error creating user:', error)
-    return null
+    throw error
   }
 }
 
 export async function findUserByEmail(email: string): Promise<User | null> {
   try {
-    const users = readUsers()
-    const user = users.find(u => u.email.toLowerCase() === email.toLowerCase())
-    return user || null
+    const emailLowercase = email.toLowerCase()
+    const userSnapshot = await db
+      .collection(USERS_COLLECTION)
+      .where('email', '==', emailLowercase)
+      .limit(1)
+      .get()
+    
+    if (userSnapshot.empty) {
+      return null
+    }
+
+    const userData = userSnapshot.docs[0].data() as User
+    return userData
+    
   } catch (error) {
     console.error('[Auth Storage] Error finding user:', error)
     return null
@@ -116,8 +99,11 @@ export async function validateUser(email: string, password: string): Promise<Use
 
 export async function getAllUsers(): Promise<Omit<User, 'password'>[]> {
   try {
-    const users = readUsers()
-    return users.map(({ password, ...user }) => user)
+    const usersSnapshot = await db.collection(USERS_COLLECTION).get()
+    return usersSnapshot.docs.map(doc => {
+      const { password, ...user } = doc.data() as User
+      return user
+    })
   } catch (error) {
     console.error('[Auth Storage] Error getting all users:', error)
     return []
