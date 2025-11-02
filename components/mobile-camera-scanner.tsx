@@ -63,20 +63,7 @@ export default function MobileCameraScanner({ onComplete, onCancel }: MobileCame
       
       let mediaStream: MediaStream | null = null;
       
-      // Check camera permissions first
-      try {
-        const permissionStatus = await navigator.permissions.query({ name: 'camera' as PermissionName });
-        console.log('[Camera] Permission status:', permissionStatus.state);
-        
-        if (permissionStatus.state === 'denied') {
-          throw new Error('Camera access is blocked. Please allow camera access in your browser settings and refresh the page.');
-        }
-      } catch (permError) {
-        // Permission API might not be supported, continue with getUserMedia
-        console.log('[Camera] Permission API not supported, continuing...');
-      }
-      
-      // Try with ideal constraints first
+      // Try to request camera access - this will trigger the browser permission prompt
       try {
         console.log('[Camera] Requesting camera access...');
         mediaStream = await navigator.mediaDevices.getUserMedia({
@@ -91,11 +78,11 @@ export default function MobileCameraScanner({ onComplete, onCancel }: MobileCame
         
         // Check specific error types
         if (idealError.name === 'NotAllowedError') {
-          throw new Error('Camera permission denied. Please click "Allow" when your browser asks for camera access, or check the camera icon in your browser address bar.');
+          throw new Error('Camera access denied. To use this feature, please allow camera access when prompted by your browser.');
         } else if (idealError.name === 'NotFoundError') {
-          throw new Error('No camera found. Please make sure your device has a camera and try again.');
+          throw new Error('No camera detected on this device. Please make sure your device has a working camera.');
         } else if (idealError.name === 'NotReadableError') {
-          throw new Error('Camera is already in use by another app. Please close other apps using the camera and try again.');
+          throw new Error('Camera is currently in use. Please close other apps using the camera and try again.');
         }
         
         // Fallback to basic constraints
@@ -105,7 +92,7 @@ export default function MobileCameraScanner({ onComplete, onCancel }: MobileCame
           });
         } catch (basicError: any) {
           if (basicError.name === 'NotAllowedError') {
-            throw new Error('Camera permission denied. Please click "Allow" when prompted, or enable camera access in your browser settings.');
+            throw new Error('Camera access denied. Please refresh the page and allow camera access when your browser prompts you.');
           }
           throw basicError;
         }
