@@ -6,11 +6,11 @@
 
 
 
-[![Built for Google GenAI Hackathon](https://img.shields.io/badge/Google_GenAI-Hackathon_2025-4285F4?style=for-the-badge&logo=google&logoColor=white)](https://cloud.google.com)[![Built for Google GenAI Hackathon](https://img.shields.io/badge/Google_GenAI-Hackathon_2025-4285F4?style=for-the-badge&logo=google&logoColor=white)](https://cloud.google.com)
+[![Built for Google GenAI Hackathon](https://img.shields.io/badge/Google_GenAI-Hackathon_2025-4285F4?style=for-the-badge&logo=google&logoColor=white)](https://cloud.google.com)
 
-[![Powered by Google Cloud](https://img.shields.io/badge/Powered_by-Google_Cloud-4285F4?style=for-the-badge&logo=google-cloud&logoColor=white)](https://cloud.google.com)[![Powered by Google Cloud](https://img.shields.io/badge/Powered_by-Google_Cloud-4285F4?style=for-the-badge&logo=google-cloud&logoColor=white)](https://cloud.google.com)
+[![Powered by Google Cloud](https://img.shields.io/badge/Powered_by-Google_Cloud-4285F4?style=for-the-badge&logo=google-cloud&logoColor=white)](https://cloud.google.com)
 
-[![Cloud Run](https://img.shields.io/badge/Cloud_Run-Live-4285F4?style=for-the-badge&logo=google-cloud&logoColor=white)](https://legalease-ai-752287189071.us-central1.run.app)[![Cloud Run](https://img.shields.io/badge/Cloud_Run-Live-4285F4?style=for-the-badge&logo=google-cloud&logoColor=white)](https://legalease-ai-752287189071.us-central1.run.app)
+[![Cloud Run](https://img.shields.io/badge/Cloud_Run-Live-4285F4?style=for-the-badge&logo=google-cloud&logoColor=white)](https://legalease-ai-752287189071.us-central1.run.app)
 
 [![Next.js](https://img.shields.io/badge/Next.js_14-black?style=for-the-badge&logo=next.js)](https://nextjs.org/)[![Next.js](https://img.shields.io/badge/Next.js_14-black?style=for-the-badge&logo=next.js)](https://nextjs.org/)
 
