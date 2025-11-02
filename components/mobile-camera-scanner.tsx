@@ -62,6 +62,18 @@ export default function MobileCameraScanner({ onComplete, onCancel }: MobileCame
       }
       
       let mediaStream: MediaStream | null = null;
+      let permissionDenied = false;
+      
+      // Check current permission state if possible
+      try {
+        const permissionStatus = await navigator.permissions.query({ name: 'camera' as PermissionName });
+        console.log('[Camera] Current permission state:', permissionStatus.state);
+        if (permissionStatus.state === 'denied') {
+          permissionDenied = true;
+        }
+      } catch (permError) {
+        console.log('[Camera] Permission API not supported or failed, continuing...');
+      }
       
       // Try to request camera access - this will trigger the browser permission prompt
       try {
@@ -78,7 +90,11 @@ export default function MobileCameraScanner({ onComplete, onCancel }: MobileCame
         
         // Check specific error types
         if (idealError.name === 'NotAllowedError') {
-          throw new Error('Camera access denied. To use this feature, please allow camera access when prompted by your browser.');
+          if (permissionDenied) {
+            throw new Error('Camera access is blocked. Click the camera icon 🎥 in your browser address bar (next to the URL) and select "Allow". Then click "Open Camera" again.');
+          } else {
+            throw new Error('Camera access denied. Please click "Allow" when your browser shows the permission popup, then try again.');
+          }
         } else if (idealError.name === 'NotFoundError') {
           throw new Error('No camera detected on this device. Please make sure your device has a working camera.');
         } else if (idealError.name === 'NotReadableError') {
@@ -92,7 +108,11 @@ export default function MobileCameraScanner({ onComplete, onCancel }: MobileCame
           });
         } catch (basicError: any) {
           if (basicError.name === 'NotAllowedError') {
-            throw new Error('Camera access denied. Please refresh the page and allow camera access when your browser prompts you.');
+            if (permissionDenied) {
+              throw new Error('Camera blocked. Click the 🎥 icon in your browser address bar, select "Allow", then refresh the page.');
+            } else {
+              throw new Error('Camera access denied. Please click "Allow" when prompted and try again.');
+            }
           }
           throw basicError;
         }
@@ -422,10 +442,34 @@ export default function MobileCameraScanner({ onComplete, onCancel }: MobileCame
             )}
           </div>
 
-          {/* Error message */}
+          {/* Error message with help */}
           {error && (
-            <div className="bg-destructive/10 text-destructive px-4 py-3 rounded-lg text-sm">
-              {error}
+            <div className="space-y-3">
+              <div className="bg-destructive/10 text-destructive px-4 py-3 rounded-lg text-sm">
+                {error}
+              </div>
+              
+              {/* Help instructions if permission denied */}
+              {error.toLowerCase().includes('blocked') || error.toLowerCase().includes('denied') ? (
+                <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg p-4">
+                  <h3 className="font-semibold text-blue-900 dark:text-blue-100 mb-2 flex items-center gap-2">
+                    <Camera className="h-4 w-4" />
+                    How to Enable Camera Access
+                  </h3>
+                  <ol className="text-sm text-blue-800 dark:text-blue-200 space-y-2 list-decimal list-inside">
+                    <li>Look for the camera icon 🎥 in your browser's address bar (left side)</li>
+                    <li>Click on it and select "Allow" or "Always allow"</li>
+                    <li>Refresh this page or click "Open Camera" again</li>
+                    <li className="font-medium mt-3">Still not working? Try:
+                      <ul className="list-disc list-inside ml-4 mt-1 space-y-1 font-normal">
+                        <li>Close other apps that might be using the camera</li>
+                        <li>Check your browser settings → Privacy & Security → Camera</li>
+                        <li>Try using Chrome, Edge, or Safari browser</li>
+                      </ul>
+                    </li>
+                  </ol>
+                </div>
+              ) : null}
             </div>
           )}
 
