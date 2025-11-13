@@ -54,73 +54,22 @@ export default function MobileCameraScanner({ onComplete, onCancel }: MobileCame
       console.log('[Camera] Starting camera with facing mode:', facingMode);
       setError(null);
       setIsVideoReady(false);
-      setIsCameraActive(true); // Show loading state immediately
+      setIsCameraActive(true);
       
       // Check if getUserMedia is supported
       if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
         throw new Error('Camera not supported on this browser. Please use Chrome, Edge, or Safari.');
       }
       
-      let mediaStream: MediaStream | null = null;
-      let permissionDenied = false;
-      
-      // Check current permission state if possible
-      try {
-        const permissionStatus = await navigator.permissions.query({ name: 'camera' as PermissionName });
-        console.log('[Camera] Current permission state:', permissionStatus.state);
-        if (permissionStatus.state === 'denied') {
-          permissionDenied = true;
-        }
-      } catch (permError) {
-        console.log('[Camera] Permission API not supported or failed, continuing...');
-      }
-      
-      // Try to request camera access - this will trigger the browser permission prompt
-      try {
-        console.log('[Camera] Requesting camera access...');
-        mediaStream = await navigator.mediaDevices.getUserMedia({
-          video: {
-            facingMode: facingMode,
-            width: { ideal: 1920 },
-            height: { ideal: 1080 },
-          },
-        });
-      } catch (idealError: any) {
-        console.warn('[Camera] Ideal constraints failed, trying basic:', idealError);
-        
-        // Check specific error types
-        if (idealError.name === 'NotAllowedError') {
-          if (permissionDenied) {
-            throw new Error('Camera access is blocked. Click the camera icon 🎥 in your browser address bar (next to the URL) and select "Allow". Then click "Open Camera" again.');
-          } else {
-            throw new Error('Camera access denied. Please click "Allow" when your browser shows the permission popup, then try again.');
-          }
-        } else if (idealError.name === 'NotFoundError') {
-          throw new Error('No camera detected on this device. Please make sure your device has a working camera.');
-        } else if (idealError.name === 'NotReadableError') {
-          throw new Error('Camera is currently in use. Please close other apps using the camera and try again.');
-        }
-        
-        // Fallback to basic constraints
-        try {
-          mediaStream = await navigator.mediaDevices.getUserMedia({
-            video: true,
-          });
-        } catch (basicError: any) {
-          if (basicError.name === 'NotAllowedError') {
-            if (permissionDenied) {
-              throw new Error('Camera blocked. Click the 🎥 icon in your browser address bar, select "Allow", then refresh the page.');
-            } else {
-              throw new Error('Camera access denied. Please click "Allow" when prompted and try again.');
-            }
-          }
-          throw basicError;
-        }
-      }
-      
-      if (!mediaStream) {
-        throw new Error('Failed to get media stream');
-      }
+      // Request camera access immediately - this will trigger the permission prompt
+      console.log('[Camera] Requesting camera access...');
+      const mediaStream = await navigator.mediaDevices.getUserMedia({
+        video: {
+          facingMode: facingMode,
+          width: { ideal: 1920 },
+          height: { ideal: 1080 },
+        },
+      });
       
       console.log('[Camera] Media stream obtained:', mediaStream.active, 
         'tracks:', mediaStream.getTracks().length);
@@ -128,49 +77,40 @@ export default function MobileCameraScanner({ onComplete, onCancel }: MobileCame
       if (videoRef.current) {
         videoRef.current.srcObject = mediaStream;
         
-        // Set a timeout in case video never loads
-        const timeout = setTimeout(() => {
-          if (!isVideoReady) {
-            console.error('[Camera] Video loading timeout');
-            setError('Camera is taking too long to load. Please refresh and try again.');
-            stopCamera();
-          }
-        }, 10000); // 10 second timeout
-        
         // Wait for video to be ready
         videoRef.current.onloadedmetadata = async () => {
-          console.log('[Camera] Video metadata loaded, dimensions:', 
-            videoRef.current?.videoWidth, 'x', videoRef.current?.videoHeight);
+          console.log('[Camera] Video metadata loaded');
           try {
             await videoRef.current?.play();
             console.log('[Camera] Video playing');
+            setIsVideoReady(true);
           } catch (playErr) {
             console.error('[Camera] Play error:', playErr);
-            clearTimeout(timeout);
           }
-        };
-        
-        videoRef.current.oncanplay = () => {
-          console.log('[Camera] Video can play - ready!');
-          setIsVideoReady(true);
-          clearTimeout(timeout);
         };
         
         videoRef.current.onerror = (e) => {
           console.error('[Camera] Video element error:', e);
-          clearTimeout(timeout);
           setError('Camera video error. Please refresh and try again.');
         };
-      } else {
-        console.error('[Camera] Video ref not available');
-        throw new Error('Camera component not ready. Please refresh the page.');
       }
       
       setStream(mediaStream);
       console.log('[Camera] Camera activated');
     } catch (err: any) {
       console.error('[Camera] Camera access error:', err);
-      const errorMessage = err instanceof Error ? err.message : 'Unknown error. Please try again.';
+      
+      let errorMessage = 'Unable to access camera. ';
+      if (err.name === 'NotAllowedError') {
+        errorMessage = 'Camera permission denied. Please allow camera access in your browser and try again.';
+      } else if (err.name === 'NotFoundError') {
+        errorMessage = 'No camera found on this device.';
+      } else if (err.name === 'NotReadableError') {
+        errorMessage = 'Camera is being used by another app. Please close other apps and try again.';
+      } else if (err.message) {
+        errorMessage = err.message;
+      }
+      
       setError(errorMessage);
       setIsCameraActive(false);
       setIsVideoReady(false);
