@@ -416,18 +416,31 @@ export default function MobileCameraScanner({ onComplete, onCancel }: MobileCame
           {/* Camera button */}
           {!isCameraActive && capturedImages.length === 0 && (
             <div className="space-y-2">
-              <Button
-                onClick={() => fileInputRef.current?.click()}
-                className="w-full"
-                size="lg"
-              >
-                <Camera className="mr-2 h-5 w-5" />
-                {isMobileDevice() ? "Take Photo with Camera" : "Upload Image from Camera/Files"}
-              </Button>
+              {isMobileDevice() ? (
+                // MOBILE: Use file input with capture (opens native camera)
+                <Button
+                  onClick={() => fileInputRef.current?.click()}
+                  className="w-full"
+                  size="lg"
+                >
+                  <Camera className="mr-2 h-5 w-5" />
+                  Take Photo with Camera
+                </Button>
+              ) : (
+                // DESKTOP: Use video stream with getUserMedia
+                <Button
+                  onClick={startCamera}
+                  className="w-full"
+                  size="lg"
+                >
+                  <Camera className="mr-2 h-5 w-5" />
+                  Open Webcam
+                </Button>
+              )}
               <p className="text-xs text-center text-muted-foreground">
                 {isMobileDevice() 
                   ? "Opens your device camera directly"
-                  : "Select image from webcam or files"}
+                  : "Click Allow when browser asks for camera permission"}
               </p>
             </div>
           )}
