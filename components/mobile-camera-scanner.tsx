@@ -415,38 +415,21 @@ export default function MobileCameraScanner({ onComplete, onCancel }: MobileCame
 
           {/* Camera button */}
           {!isCameraActive && capturedImages.length === 0 && (
-            <div className="space-y-3">
-              <Button
-                onClick={startCamera}
-                className="w-full"
-                size="lg"
-              >
-                <Camera className="mr-2 h-5 w-5" />
-                Open Camera
-              </Button>
-              
-              {/* Alternative: Use file input which bypasses permissions */}
-              <Button
-                onClick={() => fileInputRef.current?.click()}
-                variant="outline"
-                className="w-full"
-                size="lg"
-              >
-                <Upload className="mr-2 h-5 w-5" />
-                Use Native Camera (Always Works)
-              </Button>
-              <p className="text-xs text-center text-muted-foreground">
-                ↑ Click here if camera permission is denied
-              </p>
-            </div>
+            <Button
+              onClick={handleOpenCamera}
+              className="w-full"
+              size="lg"
+            >
+              <Camera className="mr-2 h-5 w-5" />
+              Open Camera
+            </Button>
           )}
 
-          {/* Hidden file input */}
+          {/* Hidden file input for camera capture */}
           <input
             ref={fileInputRef}
             type="file"
             accept="image/*"
-            multiple
             capture="environment"
             onChange={handleFileInput}
             className="hidden"
